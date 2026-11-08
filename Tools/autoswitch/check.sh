@@ -13,6 +13,7 @@ env -u VIKEY_TELEX_STYLE python3 rules/run_rules.py || rc=1   # the default styl
 VIKEY_TELEX_STYLE=1 python3 rules/run_rules.py telex_simple1.tsv || rc=1   # D56 Simple Telex styles
 VIKEY_TELEX_STYLE=2 python3 rules/run_rules.py telex_simple2.tsv || rc=1
 python3 rules/run_reported.py || rc=1   # every engine bug Tony reported, as typed (rules/reported.tsv)
+python3 rules/decisions.py || rc=1   # every decision in DECISIONS.md has a test, or says why not (rules/decisions.tsv)
 python3 rules/golden.py ${1:-check} || rc=1
 
 # Engine/Driver (what the iOS keyboard runs): same output as the simulator, and fast enough

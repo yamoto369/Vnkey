@@ -21,6 +21,8 @@ enum VKSettings {
         static let diagnostics = "KeyboardDiagnostics"
         static let suggestions = "Suggestions"
         static let autoCorrect = "AutoCorrect"
+        /// The app's secret debug menu: "review:<time>" or "bug:<time>" shows that nudge the next time the keyboard opens.
+        static let debugNudge = "DebugNudge"
     }
 
     static let defaultValues: [String: Any] = [

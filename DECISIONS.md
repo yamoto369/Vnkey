@@ -5,6 +5,20 @@ Each entry records what was asked, what was decided, and its status. Newest firs
 
 Status values: **Shipped** (in a build Tony has), **Agreed** (decided, not built yet), **Rejected**.
 
+## 60. English word forms the list is missing: "resets" stays "resets"
+
+**Status:** Built 2026-11-08, not in a release yet (Tony's report).
+
+**Problem.** On the Mac, "this get resets " gave "this get rêts ". The English list comes from subtitles: it has "reset" but not "resets". So in English mode the keys weren't English, and their Telex replay "rêts" has the same lookup key as the real word "rết" (the trailing s reads as the sắc tone), so the word was converted. In Vietnamese mode the doubled s gave "reets" (D19: the dictionary decides at the end, and "resets" wasn't in it).
+
+**Fix.** Real English word forms come from SCOWL, the database behind the standard en_US spell-check dictionaries: its en_US Hunspell dictionary, with every word expanded by its own affix rules (plurals, past tense, -ing, irregular forms). `Tools/autoswitch/build_forms.py` keeps the forms of entries whose base word is in our list and that the list is missing (18,197, ~180 KB): "resets", "quests", "resizes". `Engine/EnglishFormsData.h` holds them; the engine counts them as English, rarer than every listed word, and never when the letters are a Vietnamese word ("phis", Greek letters, is phí). Words already in the list keep their own score.
+
+Tony rejected a first version that guessed from suffixes (any listed word + -s, -es, -ed, -ing): English doesn't work that way. Also tried: every word SCOWL knows (48,102, not only forms of listed words). Worse: "nos", "cos", "sex" stopped converting to nó, có, sẽ; manual switches 58 → 60 (chat).
+
+**Result.** Rules D60 (8 cases), reported bug R21. All other rules, reported bugs and the Telex lock unchanged. Golden: "reie" → "resize" (chat, both sets), "quets" → "quests" (synthetic). Manual switches 58 → 57 (chat), 71 → 70 (chat_typos), 111 → 110 (synthetic); wrong words unchanged.
+
+**Every decision has a test.** `rules/decisions.py` (in check.sh) fails when a decision has neither cases tagged with it nor a row in `rules/decisions.tsv` naming its tests, or saying why it has none. Open (behavior, no automated test yet): D1, D3, D15, D21, D54, all app-level (they need a live test on that platform).
+
 ## 59. ":" and ";" after a space stay where they are (phone keyboards)
 
 **Status:** Shipped 2026-11-02 (Tony changed his mind on the earlier behavior).
@@ -975,3 +989,15 @@ Word recording can be turned off in the log window. Nothing leaves the Mac; Tony
 **Cause.** macOS disables the event tap when it times out or on user input (a slow Mac, secure input), and the app never turned it back on.
 
 **Fix.** Re-enable the tap when macOS reports it was disabled. A 2-second watchdog also re-enables it if needed.
+
+### Literal restoration after Telex transformations
+
+At a word boundary, restore the complete typed spelling when it is a
+recognized English word, including cases where the shortened spelling is
+also recognized. Internal case boundaries and separated vowel groups can
+provide structural evidence for an unlisted literal. Explicit Telex
+modifiers continue to protect unlisted Vietnamese syllables.
+
+Restoration based solely on the new unlisted-literal evidence applies to
+the current word. Existing spelling-based restoration retains its lookback
+behavior.

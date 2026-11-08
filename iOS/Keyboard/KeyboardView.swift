@@ -82,6 +82,8 @@ final class KeyboardView: UIView {
     /// Taken (set to nil) by the controller; nil when a key wasn't typed by a touch.
     var lastTapPoint: CGPoint?
     let bar = SuggestionBar()
+    /// A nudge's button (true) or its ✕ (false), for Nudges.
+    var onNudge: ((NudgeView.Kind, Bool) -> Void)?
     var suggestions: [Suggestion] = [] { didSet { if suggestions != oldValue { bar.show(suggestions) } } }
 
     private var keys: [(def: KeyDef, view: KeyCap)] = []
@@ -208,6 +210,9 @@ final class KeyboardView: UIView {
         addSubview(bar)
         bar.onPick = { [unowned self] i in self.delegate?.keyboard(self, pickSuggestion: i) }
         bar.onBrand = { [unowned self] in self.openVikeyApp() }
+        // A nudge's button opens the app where it acts: Apple's review sheet, or the feedback form.
+        bar.onNudge = { [unowned self] k in self.onNudge?(k, true); self.bar.hideNudge(); self.openVikeyApp(k == .review ? "review" : "feedback") }
+        bar.onNudgeClosed = { [unowned self] k in self.onNudge?(k, false) }
         addSubview(mark)
         addSubview(popup); popup.isHidden = true
         addSubview(alternates); alternates.isHidden = true
@@ -811,6 +816,12 @@ struct Suggestion: Equatable {
 final class SuggestionBar: UIView {
     var onPick: ((Int) -> Void)?
     var onBrand: (() -> Void)?
+    /// A nudge (Nudge.swift): its button, and its ✕.
+    var onNudge: ((NudgeView.Kind) -> Void)?
+    var onNudgeClosed: ((NudgeView.Kind) -> Void)?
+    private let nudgeView = NudgeView()
+    /// The nudge shown, on an empty strip only: words coming in fold it away.
+    private(set) var nudge: NudgeView.Kind?
     var dark = false { didSet { if dark != oldValue { restyle() } } }
     private var cells: [UIButton] = []
     private var lines: [UIView] = []
@@ -847,6 +858,10 @@ final class SuggestionBar: UIView {
             addSubview(b); cells.append(b)
         }
         for _ in 0..<2 { let l = UIView(); addSubview(l); lines.append(l) }
+        nudgeView.isHidden = true
+        nudgeView.onAction = { [unowned self] in if let k = nudge { onNudge?(k) } }
+        nudgeView.onClose = { [unowned self] in if let k = nudge { nudge = nil; nudgeView.isHidden = true; restyle(); onNudgeClosed?(k) } }
+        addSubview(nudgeView)
         restyle()
     }
     required init?(coder: NSCoder) { fatalError() }
@@ -855,7 +870,28 @@ final class SuggestionBar: UIView {
 
     @objc private func tap(_ b: UIButton) { if b.tag < items.count { onPick?(b.tag) } }
 
-    func show(_ s: [Suggestion]) { items = s; restyle(); setNeedsLayout() }
+    func show(_ s: [Suggestion]) {
+        items = s
+        if !s.isEmpty, nudge != nil { hideNudge() }
+        restyle(); setNeedsLayout()
+    }
+
+    /// Shows a nudge on the empty strip, opening as the corner mark does.
+    func showNudge(_ k: NudgeView.Kind) {
+        guard items.isEmpty else { return }
+        nudge = k
+        nudgeView.dark = dark
+        nudgeView.isHidden = false
+        nudgeView.frame = bounds.insetBy(dx: 2, dy: 2)
+        nudgeView.set(k)
+        restyle()
+        nudgeView.play()
+    }
+    func hideNudge() {
+        guard nudge != nil else { return }
+        nudge = nil
+        nudgeView.fold { [weak self] in self?.nudgeView.isHidden = true; self?.restyle() }
+    }
 
     private func restyle() {
         let fg: UIColor = dark ? .white : .black
@@ -864,7 +900,8 @@ final class SuggestionBar: UIView {
         let word = NSMutableAttributedString(string: "Vi", attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .bold), .foregroundColor: fg])
         word.append(NSAttributedString(string: "key", attributes: [.font: UIFont.systemFont(ofSize: 15, weight: .bold), .foregroundColor: indigo]))
         markText.attributedText = word
-        mark.isHidden = !items.isEmpty || !showsBrand   // only on an empty strip
+        mark.isHidden = !items.isEmpty || !showsBrand || nudge != nil   // only on an empty strip
+        nudgeView.dark = dark
         for (i, b) in cells.enumerated() {
             let it = i < items.count ? items[i] : nil
             let title: String? = it.map {
@@ -891,6 +928,7 @@ final class SuggestionBar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         markText.sizeToFit()
+        if !nudgeView.isHidden { nudgeView.frame = bounds.insetBy(dx: 2, dy: 2) }
         let iconSide: CGFloat = 18, gap: CGFloat = 6
         let mw = iconSide + gap + markText.bounds.width
         mark.frame = CGRect(x: bounds.width - 14 - mw, y: (bounds.height - iconSide) / 2, width: mw, height: iconSide)
@@ -912,8 +950,8 @@ final class SuggestionBar: UIView {
 extension KeyboardView {
     /// Opens the Vikey app (vikey://). A keyboard can't call UIApplication.shared, so this walks the responder chain
     /// to the host's UIApplication and calls open(_:options:completionHandler:) on it by selector.
-    func openVikeyApp() {
-        guard let url = URL(string: "vikey://") else { return }
+    func openVikeyApp(_ path: String = "") {
+        guard let url = URL(string: "vikey://\(path)") else { return }
         let sel = NSSelectorFromString("openURL:options:completionHandler:")
         var r: UIResponder? = self
         while let next = r {
