@@ -1,0 +1,23 @@
+<!-- title: Gửi góp ý – Vikey - Gõ tiếng Việt -->
+<!-- description: Báo lỗi hoặc góp ý cho Vikey. -->
+<main class="wrap prose fbpage">
+<h1>Gửi góp ý</h1>
+<p class="muted">Báo lỗi, đề xuất tính năng hay bất cứ điều gì về Vikey. Tony đọc từng góp ý.</p>
+<form id="fb" class="fbform" novalidate>
+<div class="fbkinds" role="radiogroup" aria-label="Loại góp ý">
+<label><input type="radio" name="kind" value="bug" checked><span>Báo lỗi</span></label>
+<label><input type="radio" name="kind" value="idea"><span>Góp ý</span></label>
+<label><input type="radio" name="kind" value="other"><span>Khác</span></label>
+</div>
+<div class="field"><label for="fb-msg">Nội dung</label><textarea id="fb-msg" name="message" rows="7" required placeholder="Bạn gõ gì, Vikey ra gì, và bạn mong ra gì?"></textarea></div>
+<div class="field"><label for="fb-email">Email <span class="muted">(không bắt buộc, để Vikey trả lời bạn)</span></label><input id="fb-email" name="email" type="email" autocomplete="email" placeholder="ban@email.com"></div>
+<div class="field fbfiles"><span class="lbl">Tệp đính kèm <span class="muted">(không bắt buộc)</span></span><div class="drop"><label class="btn ghost addf"><input type="file" name="files" multiple accept="image/*,video/*,.txt,.log,.ips,.crash,.json,.zip,.pdf">Thêm tệp</label><span class="muted small">Ảnh chụp màn hình, video quay màn hình, nhật ký lỗi. Tối đa 5 tệp, mỗi tệp 25 MB.</span></div><ul class="flist"></ul></div>
+<input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+<div class="ts"></div>
+<p class="err" role="alert"></p>
+<button class="btn big" type="submit">Gửi góp ý</button>
+<p class="muted small meta"></p>
+</form>
+<div class="fbdone" hidden><div class="tick">✓</div><h2>Cảm ơn bạn!</h2><p class="muted">Góp ý đã được gửi tới Vikey.</p></div>
+</main>
+<script src="/assets/feedback.js" defer></script>

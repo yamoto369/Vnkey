@@ -1,0 +1,1216 @@
+{
+  "sourceLanguage": "vi",
+  "strings": {
+    "Bộ gõ thông thường": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A normal keyboard"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bộ gõ thông thường"
+          }
+        }
+      }
+    },
+    "Thêm bàn phím Vikey trong Cài đặt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add the Vikey keyboard in Settings"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm bàn phím Vikey trong Cài đặt"
+          }
+        }
+      }
+    },
+    "Cài đặt › Vikey › Bàn phím › bật Vikey.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settings › Vikey › Keyboards › turn on Vikey."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cài đặt › Vikey › Bàn phím › bật Vikey."
+          }
+        }
+      }
+    },
+    "Thử bàn phím": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try the keyboard"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử bàn phím"
+          }
+        }
+      }
+    },
+    "Chạm vào đây, chọn Vikey bằng 🌐 rồi gõ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap here, pick Vikey with 🌐, and type"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chạm vào đây, chọn Vikey bằng 🌐 rồi gõ"
+          }
+        }
+      }
+    },
+    "Tự chuyển": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto switch"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự chuyển"
+          }
+        }
+      }
+    },
+    "Gõ một từ tiếng Anh khi đang ở tiếng Việt (hoặc ngược lại), Vikey tự sửa từ đó và chuyển chế độ. Bấm xoá ngay sau đó để hoàn tác.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type an English word while in Vietnamese (or the other way round) and Vikey fixes the word and switches. Press delete right after to undo."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gõ một từ tiếng Anh khi đang ở tiếng Việt (hoặc ngược lại), Vikey tự sửa từ đó và chuyển chế độ. Bấm xoá ngay sau đó để hoàn tác."
+          }
+        }
+      }
+    },
+    "Khi bạn tự bấm phím VI/EN, Vikey không tự chuyển trong 5 giây, để giữ đúng lựa chọn của bạn.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When you press the VI/EN key yourself, Vikey doesn't switch on its own for 5 seconds, so your choice sticks."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khi bạn tự bấm phím VI/EN, Vikey không tự chuyển trong 5 giây, để giữ đúng lựa chọn của bạn."
+          }
+        }
+      }
+    },
+    "Trong ô nhập địa chỉ web, email hoặc tìm kiếm web, Vikey bắt đầu bằng tiếng Anh và quay lại ngôn ngữ cũ khi bạn rời ô đó.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In web address, email and web search fields, Vikey starts in English and goes back to your previous language when you leave the field."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trong ô nhập địa chỉ web, email hoặc tìm kiếm web, Vikey bắt đầu bằng tiếng Anh và quay lại ngôn ngữ cũ khi bạn rời ô đó."
+          }
+        }
+      }
+    },
+    "Gõ tiếng Việt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vietnamese typing"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gõ tiếng Việt"
+          }
+        }
+      }
+    },
+    "Đặt dấu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tone placement"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đặt dấu"
+          }
+        }
+      }
+    },
+    "Vị trí dấu thanh với oa, oe, uy: kiểu mới (hoà, thuý) hoặc kiểu cũ (hòa, thúy).": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Where the tone mark goes on oa, oe, uy: new style (hoà, thuý) or old style (hòa, thúy)."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vị trí dấu thanh với oa, oe, uy: kiểu mới (hoà, thuý) hoặc kiểu cũ (hòa, thúy)."
+          }
+        }
+      }
+    },
+    "Kiểm tra chính tả": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Spell check"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểm tra chính tả"
+          }
+        }
+      }
+    },
+    "Chỉ bỏ dấu khi từ đang gõ đúng quy tắc chính tả tiếng Việt.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only add tone marks when the word follows Vietnamese spelling rules."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ bỏ dấu khi từ đang gõ đúng quy tắc chính tả tiếng Việt."
+          }
+        }
+      }
+    },
+    "Khi gõ xong một từ sai chính tả tiếng Việt, Vikey trả lại đúng các phím bạn đã gõ.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When you finish a word that isn't valid Vietnamese, Vikey puts back exactly the keys you typed."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khi gõ xong một từ sai chính tả tiếng Việt, Vikey trả lại đúng các phím bạn đã gõ."
+          }
+        }
+      }
+    },
+    "Bàn phím": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keyboard"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bàn phím"
+          }
+        }
+      }
+    },
+    "Chữ đầu tiên của câu được viết hoa, như bàn phím của iPhone.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The first letter of a sentence is capitalized, like the iPhone keyboard."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chữ đầu tiên của câu được viết hoa, như bàn phím của iPhone."
+          }
+        }
+      }
+    },
+    "Rung nhẹ mỗi khi chạm phím, như bàn phím của iPhone. Cần bật Cho phép Truy cập đầy đủ: Cài đặt › Vikey › Bàn phím. Vikey chỉ dùng quyền này để rung, không bao giờ gửi gì ra khỏi máy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A light tap on every key, like the iPhone keyboard. Needs Allow Full Access: Settings › Vikey › Keyboards. Vikey only uses it for haptics and never sends anything off your phone."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rung nhẹ mỗi khi chạm phím, như bàn phím của iPhone. Cần bật Cho phép Truy cập đầy đủ: Cài đặt › Vikey › Bàn phím. Vikey chỉ dùng quyền này để rung, không bao giờ gửi gì ra khỏi máy."
+          }
+        }
+      }
+    },
+    "Chạm nhanh hai lần phím cách để thêm dấu chấm và một khoảng trắng.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Double-tap the space bar to insert a period followed by a space."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chạm nhanh hai lần phím cách để thêm dấu chấm và một khoảng trắng."
+          }
+        }
+      }
+    },
+    "Phía trên các phím hiện thời gian xử lý mỗi lần chạm, số lần rung và số lần chạm iOS gửi tới, và ghi vào nhật ký. Nhật ký không chứa chữ bạn gõ, chỉ có thời gian và loại phím (chữ, dấu cách, xoá…). Cần Truy cập đầy đủ để bàn phím ghi được nhật ký.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shows the time each key press takes, the number of haptics and the touches iOS sends, above the keys, and writes them to a log. The log never contains what you type, only timings and the key kind (letter, space, delete…). The keyboard needs Full Access to write the log."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phía trên các phím hiện thời gian xử lý mỗi lần chạm, số lần rung và số lần chạm iOS gửi tới, và ghi vào nhật ký. Nhật ký không chứa chữ bạn gõ, chỉ có thời gian và loại phím (chữ, dấu cách, xoá…). Cần Truy cập đầy đủ để bàn phím ghi được nhật ký."
+          }
+        }
+      }
+    },
+    "(nhật ký trống)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(log is empty)"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(nhật ký trống)"
+          }
+        }
+      }
+    },
+    "Gửi nhật ký": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send log"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi nhật ký"
+          }
+        }
+      }
+    },
+    "Xoá nhật ký": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear log"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xoá nhật ký"
+          }
+        }
+      }
+    },
+    "Chưa có gì. Mở bàn phím Vikey và gõ thử.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nothing yet. Open the Vikey keyboard and type something."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chưa có gì. Mở bàn phím Vikey và gõ thử."
+          }
+        }
+      }
+    },
+    "%lld dòng": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld lines"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld dòng"
+          }
+        }
+      }
+    },
+    "Gỡ lỗi": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diagnostics"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gỡ lỗi"
+          }
+        }
+      }
+    },
+    "Ngôn ngữ ứng dụng": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App language"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngôn ngữ ứng dụng"
+          }
+        }
+      }
+    },
+    "Xem lại hướng dẫn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show the intro again"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xem lại hướng dẫn"
+          }
+        }
+      }
+    },
+    "Phiên bản": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phiên bản"
+          }
+        }
+      }
+    },
+    "Vikey được thiết kế và phát triển bởi Tony Dinh, dựa trên dự án mã nguồn mở OpenKey của Tuyen Mai. Mã nguồn mở theo giấy phép GPL-3.0.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey is designed and built by Tony Dinh, based on the open-source OpenKey project by Tuyen Mai. Open source under the GPL-3.0 license."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey được thiết kế và phát triển bởi Tony Dinh, dựa trên dự án mã nguồn mở OpenKey của Tuyen Mai. Mã nguồn mở theo giấy phép GPL-3.0."
+          }
+        }
+      }
+    },
+    "Bắt đầu": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Get started"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu"
+          }
+        }
+      }
+    },
+    "Tiếp tục": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiếp tục"
+          }
+        }
+      }
+    },
+    "Để sau": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Để sau"
+          }
+        }
+      }
+    },
+    "Xong": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Xong"
+          }
+        }
+      }
+    },
+    "Tự chuyển Anh/Việt\nkhi bạn gõ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English and Vietnamese,\nswitched as you type"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự chuyển Anh/Việt\nkhi bạn gõ"
+          }
+        }
+      }
+    },
+    "Gõ tiếng Anh giữa câu tiếng Việt, Vikey tự sửa và chuyển chế độ cho bạn.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type English in the middle of Vietnamese and Vikey fixes the word and switches for you."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gõ tiếng Anh giữa câu tiếng Việt, Vikey tự sửa và chuyển chế độ cho bạn."
+          }
+        }
+      }
+    },
+    "Thêm bàn phím Vikey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add the Vikey keyboard"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thêm bàn phím Vikey"
+          }
+        }
+      }
+    },
+    "Mở Cài đặt của Vikey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Vikey's Settings"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Cài đặt của Vikey"
+          }
+        }
+      }
+    },
+    "Chọn Bàn phím": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap Keyboards"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chọn Bàn phím"
+          }
+        }
+      }
+    },
+    "Bật Vikey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on Vikey"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bật Vikey"
+          }
+        }
+      }
+    },
+    "Bật Cho phép Truy cập đầy đủ để rung khi gõ (không bắt buộc)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on Allow Full Access for haptics (optional)"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bật Cho phép Truy cập đầy đủ để rung khi gõ (không bắt buộc)"
+          }
+        }
+      }
+    },
+    "Mở Cài đặt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mở Cài đặt"
+          }
+        }
+      }
+    },
+    "Đã thêm Vikey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey added"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Đã thêm Vikey"
+          }
+        }
+      }
+    },
+    "Vikey chỉ dùng Truy cập đầy đủ để rung khi gõ phím. Bàn phím không kết nối mạng, những gì bạn gõ không rời khỏi máy.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey only uses Full Access for haptics. The keyboard never uses the network; what you type stays on your phone."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey chỉ dùng Truy cập đầy đủ để rung khi gõ phím. Bàn phím không kết nối mạng, những gì bạn gõ không rời khỏi máy."
+          }
+        }
+      }
+    },
+    "Thử ngay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Try it"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thử ngay"
+          }
+        }
+      }
+    },
+    "Gõ ở đây": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type here"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gõ ở đây"
+          }
+        }
+      }
+    },
+    "Vikey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey"
+          }
+        }
+      }
+    },
+    "vikey.app": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vikey.app"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "vikey.app"
+          }
+        }
+      }
+    },
+    "hoà, thuý": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hoà, thuý"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hoà, thuý"
+          }
+        }
+      }
+    },
+    "hòa, thúy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hòa, thúy"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hòa, thúy"
+          }
+        }
+      }
+    },
+    "Gợi ý từ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word suggestions"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gợi ý từ"
+          }
+        }
+      }
+    },
+    "Hiện các từ gợi ý phía trên bàn phím, cả tiếng Việt lẫn tiếng Anh. Chạm vào một từ để dùng nó.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show suggested words above the keys, in both Vietnamese and English. Tap a word to use it."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện các từ gợi ý phía trên bàn phím, cả tiếng Việt lẫn tiếng Anh. Chạm vào một từ để dùng nó."
+          }
+        }
+      }
+    },
+    "Tự sửa lỗi gõ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-correct"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự sửa lỗi gõ"
+          }
+        }
+      }
+    },
+    "Khi bạn chạm lệch phím (\"teh\" thay vì \"the\"), Vikey sửa từ đó khi bạn bấm phím cách. Bấm xoá ngay sau đó để giữ lại từ bạn gõ.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "When you hit a neighbouring key (\"teh\" instead of \"the\"), Vikey fixes the word when you press space. Press delete right after to keep what you typed."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Khi bạn chạm lệch phím (\"teh\" thay vì \"the\"), Vikey sửa từ đó khi bạn bấm phím cách. Bấm xoá ngay sau đó để giữ lại từ bạn gõ."
+          }
+        }
+      }
+    },
+    "Gửi góp ý": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send feedback"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gửi góp ý"
+          }
+        }
+      }
+    },
+    "Ghi nhận": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acknowledgements"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ghi nhận"
+          }
+        }
+      }
+    },
+    "Mã nguồn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Code"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mã nguồn"
+          }
+        }
+      }
+    },
+    "Dữ liệu từ ngữ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Word data"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dữ liệu từ ngữ"
+          }
+        }
+      }
+    },
+    "Dữ liệu kiểm thử": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test data"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dữ liệu kiểm thử"
+          }
+        }
+      }
+    },
+    "Vikey tự chuyển Anh/Việt nhờ thống kê từ ngữ đếm từ các nguồn này. Trong ứng dụng chỉ có số liệu thống kê, không có văn bản nào.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey switches between English and Vietnamese using word statistics counted from these sources. The app contains only the statistics, never the text."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vikey tự chuyển Anh/Việt nhờ thống kê từ ngữ đếm từ các nguồn này. Trong ứng dụng chỉ có số liệu thống kê, không có văn bản nào."
+          }
+        }
+      }
+    },
+    "Chỉ dùng để đo và cải thiện độ chính xác, không có trong ứng dụng.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Used only to measure and improve accuracy; not in the app."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chỉ dùng để đo và cải thiện độ chính xác, không có trong ứng dụng."
+          }
+        }
+      }
+    },
+    "Tự chuyển Anh/Việt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-switch"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự chuyển Anh/Việt"
+          }
+        }
+      }
+    },
+    "Tạm dừng 5 giây": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5-second pause"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tạm dừng 5 giây"
+          }
+        }
+      }
+    },
+    "Trả lại phím khi sai": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore typed keys"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trả lại phím khi sai"
+          }
+        }
+      }
+    },
+    "Tự viết hoa": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auto-capitalization"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự viết hoa"
+          }
+        }
+      }
+    },
+    "Rung khi gõ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Haptic feedback"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rung khi gõ"
+          }
+        }
+      }
+    },
+    "Phím tắt dấu chấm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“.” shortcut"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Phím tắt dấu chấm"
+          }
+        }
+      }
+    },
+    "Tiếng Anh cho web, email": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "English for web & email"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiếng Anh cho web, email"
+          }
+        }
+      }
+    },
+    "Hiện thông số": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show timings"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hiện thông số"
+          }
+        }
+      }
+    },
+    "Chạm vào ô bên dưới, giữ 🌐 để chọn Vikey, rồi gõ thử \"tooi ddi meeting nhes\".": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tap the box below, hold 🌐 to pick Vikey, then try typing \"tooi ddi meeting nhes\"."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chạm vào ô bên dưới, giữ 🌐 để chọn Vikey, rồi gõ thử \"tooi ddi meeting nhes\"."
+          }
+        }
+      }
+    },
+    "Kiểu gõ": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Typing style"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kiểu gõ"
+          }
+        }
+      }
+    },
+    "Telex": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telex"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telex"
+          }
+        }
+      }
+    },
+    "Telex đơn giản 1": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simple Telex 1"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telex đơn giản 1"
+          }
+        }
+      }
+    },
+    "Telex đơn giản 2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Simple Telex 2"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telex đơn giản 2"
+          }
+        }
+      }
+    },
+    "Telex và Telex đơn giản 2: w đứng riêng ra ư. Telex đơn giản 1: w đứng riêng vẫn là w. Cả ba kiểu đều gõ uw, ow, aw ra ư, ơ, ă. Trên bàn phím điện thoại, [ và ] luôn là dấu ngoặc.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telex and Simple Telex 2: a lone w types ư. Simple Telex 1: a lone w stays w. In all three, uw, ow and aw type ư, ơ and ă. On the phone keyboard, [ and ] are always brackets."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Telex và Telex đơn giản 2: w đứng riêng ra ư. Telex đơn giản 1: w đứng riêng vẫn là w. Cả ba kiểu đều gõ uw, ow, aw ra ư, ơ, ă. Trên bàn phím điện thoại, [ và ] luôn là dấu ngoặc."
+          }
+        }
+      }
+    },
+    "Góp ý": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

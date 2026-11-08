@@ -1,0 +1,13 @@
+# Cloudflare Pages project "vikey" (vikey.app). Deployed by Tools/release/deploy_site.sh from this folder.
+name = "vikey"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-01"
+
+[[d1_databases]]   # emails for "notify me when <platform> is available" (functions/api/notify.js)
+binding = "DB"
+database_name = "vikey-notify"
+database_id = "2427eb7f-cd88-45f7-9082-ea0d3376270f"
+
+[[r2_buckets]]   # files attached to /api/feedback (screenshots, screen recordings, crash logs), key feedback/<id>/<n>-<name>
+binding = "FILES"
+bucket_name = "vikey-feedback"

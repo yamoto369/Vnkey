@@ -1,0 +1,57 @@
+{
+  "_note": "Headline lines are broken deliberately (each array item is one line, never wrapped). ui = which app-UI capture language the locale uses. en-GB, en-AU, en-CA reuse en-US.",
+  "vi": {"ui": "vi", "slides": [
+    {"file": "01_autoswitch", "headline": ["Tự chuyển Anh/Việt", "khi gõ"], "sub": "Cứ gõ, Vikey tự chọn ngôn ngữ"},
+    {"file": "02_mix", "headline": ["Gõ trộn", "không cần chuyển tay"], "sub": "So với bộ gõ thông thường"},
+    {"file": "03_suggest", "headline": ["Gợi ý và", "tự sửa lỗi"], "sub": "Cả tiếng Việt lẫn tiếng Anh"},
+    {"file": "04_settings", "headline": ["Tuỳ chỉnh", "theo ý bạn"], "sub": "Đặt dấu, chính tả, gợi ý"},
+    {"file": "05_privacy", "headline": ["Không gửi gì", "ra khỏi máy"], "sub": "Không cần mạng · Không thu thập dữ liệu"}]},
+  "en-US": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["English & Vietnamese,", "switched as you type"], "sub": "Just type. Vikey picks the language."},
+    {"file": "02_mix", "headline": ["Mix languages,", "no switching"], "sub": "Compared with a normal keyboard"},
+    {"file": "03_suggest", "headline": ["Suggestions", "and auto-correct"], "sub": "In Vietnamese and English"},
+    {"file": "04_settings", "headline": ["Make it yours"], "sub": "Tone marks, spelling, suggestions"},
+    {"file": "05_privacy", "headline": ["Nothing leaves", "your phone"], "sub": "No network · No data collected"}]},
+  "fr-FR": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["Anglais et vietnamien,", "sans changer de clavier"], "sub": "Tapez, Vikey choisit la langue"},
+    {"file": "02_mix", "headline": ["Mélangez les langues,", "sans basculer"], "sub": "Comparé à un clavier classique"},
+    {"file": "03_suggest", "headline": ["Suggestions et", "correction automatique"], "sub": "En vietnamien et en anglais"},
+    {"file": "04_settings", "headline": ["À votre façon"], "sub": "Accents, orthographe, suggestions"},
+    {"file": "05_privacy", "headline": ["Rien ne quitte", "votre téléphone"], "sub": "Aucun réseau · Aucune donnée collectée"}]},
+  "de-DE": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["Englisch & Vietnamesisch,", "automatisch beim Tippen"], "sub": "Einfach tippen, Vikey wählt die Sprache"},
+    {"file": "02_mix", "headline": ["Sprachen mischen,", "ohne umzuschalten"], "sub": "Im Vergleich zu einer normalen Tastatur"},
+    {"file": "03_suggest", "headline": ["Vorschläge und", "Autokorrektur"], "sub": "Auf Vietnamesisch und Englisch"},
+    {"file": "04_settings", "headline": ["Ganz wie Sie es mögen"], "sub": "Tonzeichen, Rechtschreibung, Vorschläge"},
+    {"file": "05_privacy", "headline": ["Nichts verlässt", "Ihr Handy"], "sub": "Kein Netzwerk · Keine Datenerfassung"}]},
+  "ja": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["英語とベトナム語を", "入力中に自動切替"], "sub": "打つだけで、Vikeyが言語を選択"},
+    {"file": "02_mix", "headline": ["混ぜて打っても", "切り替え不要"], "sub": "通常のキーボードとの比較"},
+    {"file": "03_suggest", "headline": ["予測変換と", "自動修正"], "sub": "ベトナム語にも英語にも対応"},
+    {"file": "04_settings", "headline": ["自分好みに", "カスタマイズ"], "sub": "声調記号・スペル・候補表示"},
+    {"file": "05_privacy", "headline": ["データは", "端末の外に出ません"], "sub": "通信なし · データ収集なし"}]},
+  "ko": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["영어와 베트남어,", "입력하며 자동 전환"], "sub": "그냥 입력하세요. Vikey가 언어를 고릅니다"},
+    {"file": "02_mix", "headline": ["섞어 써도", "전환할 필요 없이"], "sub": "일반 키보드와 비교"},
+    {"file": "03_suggest", "headline": ["단어 추천과", "자동 수정"], "sub": "베트남어와 영어 모두"},
+    {"file": "04_settings", "headline": ["원하는 대로", "설정하세요"], "sub": "성조 표기, 맞춤법, 단어 추천"},
+    {"file": "05_privacy", "headline": ["아무것도 기기 밖으로", "나가지 않아요"], "sub": "네트워크 없음 · 데이터 수집 없음"}]},
+  "zh-Hans": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["英语和越南语", "打字时自动切换"], "sub": "只管输入，Vikey 自动选择语言"},
+    {"file": "02_mix", "headline": ["混合输入", "无需手动切换"], "sub": "与普通键盘对比"},
+    {"file": "03_suggest", "headline": ["智能建议", "自动纠错"], "sub": "支持越南语和英语"},
+    {"file": "04_settings", "headline": ["按你的喜好", "随心设置"], "sub": "声调标记、拼写检查、词语建议"},
+    {"file": "05_privacy", "headline": ["数据绝不", "离开你的手机"], "sub": "无需联网 · 不收集任何数据"}]},
+  "zh-Hant": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["英文和越南文", "打字時自動切換"], "sub": "只管輸入，Vikey 自動選擇語言"},
+    {"file": "02_mix", "headline": ["混合輸入", "無需手動切換"], "sub": "與一般鍵盤對比"},
+    {"file": "03_suggest", "headline": ["智慧建議", "自動校正"], "sub": "支援越南文和英文"},
+    {"file": "04_settings", "headline": ["依你的喜好", "自訂設定"], "sub": "聲調標記、拼字檢查、字詞建議"},
+    {"file": "05_privacy", "headline": ["資料絕不", "離開你的手機"], "sub": "無需連網 · 不收集任何資料"}]},
+  "cs": {"ui": "en", "slides": [
+    {"file": "01_autoswitch", "headline": ["Sám přepne jazyk", "už při psaní"], "sub": "Prostě pište, Vikey zvolí jazyk"},
+    {"file": "02_mix", "headline": ["Míchejte jazyky", "bez přepínání"], "sub": "Ve srovnání s běžnou klávesnicí"},
+    {"file": "03_suggest", "headline": ["Návrhy a", "automatické opravy"], "sub": "Ve vietnamštině i angličtině"},
+    {"file": "04_settings", "headline": ["Nastavte si vše", "po svém"], "sub": "Diakritika, pravopis, návrhy"},
+    {"file": "05_privacy", "headline": ["Nic neopustí", "váš telefon"], "sub": "Bez sítě · Žádný sběr dat"}]}
+}

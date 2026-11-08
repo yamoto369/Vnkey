@@ -1,0 +1,44 @@
+name: Vikey
+options:
+  bundleIdPrefix: com.devuap
+  deploymentTarget:
+    macOS: "13.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    DEVELOPMENT_TEAM: 3H6967F79Y
+    SWIFT_VERSION: "5.10"
+    CLANG_CXX_LANGUAGE_STANDARD: c++17
+    MARKETING_VERSION: "1.0.31"
+    CURRENT_PROJECT_VERSION: "33"
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+packages:
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.1
+targets:
+  Vikey:
+    type: application
+    platform: macOS
+    dependencies:
+      - sdk: Carbon.framework
+      - sdk: ApplicationServices.framework
+      - package: Sparkle
+    sources:
+      - path: App
+      - path: Engine
+        excludes:
+          - "platforms/win32.h"
+          - "platforms/linux.h"
+    settings:
+      base:
+        PRODUCT_NAME: Vikey
+        PRODUCT_BUNDLE_IDENTIFIER: com.devuap.vikey
+        INFOPLIST_FILE: App/Info.plist
+        CODE_SIGN_ENTITLEMENTS: App/Vikey.entitlements
+        CODE_SIGN_STYLE: Manual
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_OBJC_BRIDGING_HEADER: App/Core/Vikey-Bridging-Header.h
+        HEADER_SEARCH_PATHS: ["$(SRCROOT)/Engine", "$(SRCROOT)/Engine/platforms"]
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        COMBINE_HIDPI_IMAGES: YES

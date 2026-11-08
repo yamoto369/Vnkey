@@ -1,0 +1,6 @@
+sim
+sim_*
+s[0-9]*
+*.units
+rtsim
+sim0

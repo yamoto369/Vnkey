@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:vikey="https://vikey.app/xmlns">
+<channel>
+<title>Vikey</title>
+<link>https://vikey.app</link>
+<item>
+<title>Vikey 1.0.31</title>
+<pubDate>Mon, 02 Nov 2026 01:47:26 +0000</pubDate>
+<sparkle:version>33</sparkle:version>
+<sparkle:shortVersionString>1.0.31</sparkle:shortVersionString>
+<sparkle:minimumSystemVersion>13.0</sparkle:minimumSystemVersion>
+<description><![CDATA[<ul>
+<li>Mac: gõ nhẹ hơn, mỗi phím làm ít việc hơn.</li>
+<li>Mac: cửa sổ chính không còn mở ra với kích thước 0 trên macOS 14 và 15. Bấm ⌘, để mở cài đặt Vikey.</li>
+<li>Windows, Linux: phím số bên phải bàn phím gõ giống hàng số trên. Các phím Vikey không xử lý sẽ kết thúc từ đang gõ. Windows không còn nhả phím Shift đang giữ.</li>
+<li>Linux: gõ nhẹ hơn, nhật ký gõ được ghi theo hẹn giờ thay vì mỗi phím.</li>
+<li>Android: ô mật khẩu gõ đúng phím bạn bấm. Chạm ngay sau khi đổi bàn phím (123, emoji) trúng phím mới.</li>
+</ul>]]></description>
+<enclosure url="https://vikey.app/downloads/Vikey-1.0.31.dmg" type="application/octet-stream" sparkle:edSignature="0faavzmHSLB7THBCqWYGDmnzsZuPGtoo2rm+Ji9S5awXe310ekoDtP2BTiKCjS46wUgfsovnjGPP7L0ucZmMAA==" length="4620110"/>
+</item>
+<item>
+<title>Vikey 1.0.31 for Windows (x64)</title>
+<pubDate>Mon, 02 Nov 2026 01:49:51 +0000</pubDate>
+<sparkle:version>33</sparkle:version>
+<sparkle:shortVersionString>1.0.31</sparkle:shortVersionString>
+<description><![CDATA[<ul>
+<li>Mac: gõ nhẹ hơn, mỗi phím làm ít việc hơn.</li>
+<li>Mac: cửa sổ chính không còn mở ra với kích thước 0 trên macOS 14 và 15. Bấm ⌘, để mở cài đặt Vikey.</li>
+<li>Windows, Linux: phím số bên phải bàn phím gõ giống hàng số trên. Các phím Vikey không xử lý sẽ kết thúc từ đang gõ. Windows không còn nhả phím Shift đang giữ.</li>
+<li>Linux: gõ nhẹ hơn, nhật ký gõ được ghi theo hẹn giờ thay vì mỗi phím.</li>
+<li>Android: ô mật khẩu gõ đúng phím bạn bấm. Chạm ngay sau khi đổi bàn phím (123, emoji) trúng phím mới.</li>
+</ul>]]></description>
+<enclosure url="https://vikey.app/downloads/Vikey-1.0.31-x64-Setup.exe" sparkle:os="windows" vikey:arch="x64" type="application/octet-stream" sparkle:edSignature="eRpYGj1Xn/pmfQ/iCCqsF1gCL1+A6JsjC2+FconU+feprYPajDbERkJVsrelTnYn0EPeDoG8JqygzsfpUb5dAg==" length="3183429"/>
+</item>
+<item>
+<title>Vikey 1.0.31 for Windows (arm64)</title>
+<pubDate>Mon, 02 Nov 2026 01:49:51 +0000</pubDate>
+<sparkle:version>33</sparkle:version>
+<sparkle:shortVersionString>1.0.31</sparkle:shortVersionString>
+<description><![CDATA[<ul>
+<li>Mac: gõ nhẹ hơn, mỗi phím làm ít việc hơn.</li>
+<li>Mac: cửa sổ chính không còn mở ra với kích thước 0 trên macOS 14 và 15. Bấm ⌘, để mở cài đặt Vikey.</li>
+<li>Windows, Linux: phím số bên phải bàn phím gõ giống hàng số trên. Các phím Vikey không xử lý sẽ kết thúc từ đang gõ. Windows không còn nhả phím Shift đang giữ.</li>
+<li>Linux: gõ nhẹ hơn, nhật ký gõ được ghi theo hẹn giờ thay vì mỗi phím.</li>
+<li>Android: ô mật khẩu gõ đúng phím bạn bấm. Chạm ngay sau khi đổi bàn phím (123, emoji) trúng phím mới.</li>
+</ul>]]></description>
+<enclosure url="https://vikey.app/downloads/Vikey-1.0.31-arm64-Setup.exe" sparkle:os="windows" vikey:arch="arm64" type="application/octet-stream" sparkle:edSignature="SOE50UOdPJ2h65jYFk2wjnR42m89YnI+EHZSWKubeFeTvIoQL1BGWOJ9VPf633e9Nu1b5iGG5OSD3WNOejQSAg==" length="3166531"/>
+</item>
+</channel>
+</rss>

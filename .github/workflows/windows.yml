@@ -1,0 +1,183 @@
+name: Windows build
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Optional release tag (e.g. v1.0.14). Leave empty for build only."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  engine-check:
+    name: Engine validation
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ninja
+        run: choco install ninja -y --no-progress
+        shell: pwsh
+
+      - name: Validate shared typing engine
+        run: pwsh -NoProfile -ExecutionPolicy Bypass -File Windows/check.ps1
+        shell: pwsh
+
+  build:
+    name: Build Windows (${{ matrix.arch }})
+    needs: engine-check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: windows-latest
+            arch: x64
+          - runner: windows-11-arm
+            arch: arm64
+    runs-on: ${{ matrix.runner }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Ninja
+        run: choco install ninja -y --no-progress
+        shell: pwsh
+
+      - name: Build app (version from project.yml)
+        if: hashFiles('Windows/App/CMakeLists.txt') != ''
+        run: |
+          $ver = (Select-String -Path project.yml -Pattern 'MARKETING_VERSION: "([^"]+)"').Matches[0].Groups[1].Value
+          "VIKEY_VERSION=$ver" >> $env:GITHUB_ENV
+          cmake -S Windows -B Windows/build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build Windows/build --config Release --target vikey
+        shell: pwsh
+
+      - uses: actions/upload-artifact@v4
+        if: hashFiles('Windows/App/CMakeLists.txt') != ''
+        with:
+          name: Vikey-windows-${{ matrix.arch }}
+          path: Windows/build/App/Vikey.exe
+
+  package:
+    name: Prepare portable builds
+    needs: build
+    runs-on: windows-latest
+
+    env:
+      CERTUM_EMAIL: ${{ secrets.CERTUM_EMAIL }}
+      CERTUM_OTP: ${{ secrets.CERTUM_OTP }}
+      RELEASE_TAG: ${{ inputs.release_tag }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Code signing tool (ssign - Certum SimplySign cloud cert)
+        if: env.CERTUM_OTP != ''
+        run: |
+          Invoke-WebRequest -Uri https://github.com/Le-Syl21/ssign/releases/download/v0.1.8/ssign-windows-x86_64.zip -OutFile ssign.zip
+          Expand-Archive ssign.zip -DestinationPath ssign
+          $exe = (Get-ChildItem ssign -Recurse -Filter ssign.exe | Select-Object -First 1).FullName
+          "SSIGN=$exe" >> $env:GITHUB_ENV
+        shell: pwsh
+
+      - name: Prepare portable executables
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+
+          function Sign($file) {
+            if (-not $env:SSIGN) {
+              "unsigned: $file (no CERTUM_OTP secret)" | Out-Host
+              return
+            }
+
+            & $env:SSIGN $file
+            if ($LASTEXITCODE -ne 0) {
+              throw "signing failed: $file"
+            }
+          }
+
+          foreach ($arch in @('x64', 'arm64')) {
+            $src = "artifacts/Vikey-windows-$arch/Vikey.exe"
+            if (-not (Test-Path $src)) {
+              throw "Build output not found: $src"
+            }
+
+            Sign $src
+            Copy-Item $src "dist/Vikey-$arch.exe"
+          }
+
+          Get-ChildItem dist -File | Select-Object Name, Length | Format-Table -AutoSize
+        shell: pwsh
+
+      - name: Upload build artifacts
+        if: inputs.release_tag == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: Vikey-Windows-${{ github.run_number }}
+          path: dist/*
+          retention-days: 30
+
+      - name: Create release if not exists
+        if: inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$env:RELEASE_TAG" --repo "$env:GITHUB_REPOSITORY" *> $null
+
+          if ($LASTEXITCODE -ne 0) {
+            Write-Host "Release not found. Creating release..."
+
+            gh release create "$env:RELEASE_TAG" `
+              --repo "$env:GITHUB_REPOSITORY" `
+              --target "$env:GITHUB_SHA" `
+              --title "$env:RELEASE_TAG" `
+              --generate-notes
+
+            if ($LASTEXITCODE -ne 0) {
+              throw "Failed to create GitHub Release"
+            }
+          }
+        shell: pwsh
+
+      - name: Upload to GitHub Release
+        if: inputs.release_tag != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $files = @(Get-ChildItem -Path dist -File | ForEach-Object { $_.FullName })
+
+          if ($files.Count -eq 0) {
+            throw "No release files found in dist/"
+          }
+
+          gh release upload "$env:RELEASE_TAG" @files `
+            --clobber `
+            --repo "$env:GITHUB_REPOSITORY"
+
+          if ($LASTEXITCODE -ne 0) {
+            throw "Failed to upload release assets"
+          }
+        shell: pwsh
