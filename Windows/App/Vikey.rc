@@ -1,6 +1,8 @@
 #include <windows.h>
 #include "resource.h"
 IDI_APP ICON "Vikey.ico"
+IDR_TRAY_V RCDATA "TrayV.png"
+IDR_TRAY_E RCDATA "TrayE.png"
 1 24 "Vikey.manifest"
 IDR_SOUND_VI RCDATA "Sounds/SwitchToVietnamese.wav"
 IDR_SOUND_EN RCDATA "Sounds/SwitchToEnglish.wav"

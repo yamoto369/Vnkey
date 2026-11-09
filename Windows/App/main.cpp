@@ -4,6 +4,7 @@
 #include <string>
 #include <windowsx.h>
 #include <algorithm>
+#include <cstring>
 #include <objidl.h>
 #define GDIPVER 0x0110
 #include <gdiplus.h>
@@ -35,44 +36,42 @@ static UINT _iconDpi = 0;
 static int _iconSize = 0;
 static bool _trayAdded = false;
 
-/// Render a crisp, DPI-sized tray tile. V uses the app's indigo gradient; E is black.
-static HICON makeIcon(wchar_t letter, int size) {
+/// Load a transparent PNG resource and scale it to the current tray DPI.
+static HICON makeIcon(int resourceId, int size) {
     if (size <= 0) return nullptr;
-    Bitmap bitmap(size, size, PixelFormat32bppARGB);
-    Graphics g(&bitmap);
-    g.SetSmoothingMode(SmoothingModeAntiAlias);
-    g.SetPixelOffsetMode(PixelOffsetModeHighQuality);
-    g.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
-    g.Clear(Color(0, 0, 0, 0));
-    float inset = std::max(0.5f, size * 0.055f);
-    RectF tile(inset, inset, size - inset * 2.0f, size - inset * 2.0f);
-    GraphicsPath path;
-    float d = std::min(tile.Width, tile.Height) * 0.46f;
-    path.AddArc(tile.X, tile.Y, d, d, 180, 90);
-    path.AddArc(tile.X + tile.Width - d, tile.Y, d, d, 270, 90);
-    path.AddArc(tile.X + tile.Width - d, tile.Y + tile.Height - d, d, d, 0, 90);
-    path.AddArc(tile.X, tile.Y + tile.Height - d, d, d, 90, 90);
-    path.CloseFigure();
-    SolidBrush tileFill(Color(255, 248, 249, 253));
-    Pen tileBorder(Color(255, 205, 211, 230), std::max(0.7f, size * 0.045f));
-    g.FillPath(&tileFill, &path);
-    g.DrawPath(&tileBorder, &path);
-    FontFamily family(L"Segoe UI");
-    Font font(&family, std::max(1.0f, size * 0.69f), FontStyleBold, UnitPixel);
-    StringFormat format;
-    format.SetAlignment(StringAlignmentCenter);
-    format.SetLineAlignment(StringAlignmentCenter);
-    RectF textRect(0.0f, -size * 0.015f, (float)size, (float)size);
-    if (letter == L'V') {
-        LinearGradientBrush glyph(RectF(0, 0, (float)size, (float)size),
-            Color(255, 83, 80, 205), Color(255, 55, 69, 184), LinearGradientModeVertical);
-        g.DrawString(L"V", 1, &font, textRect, &format, &glyph);
-    } else {
-        SolidBrush glyph(Color(255, 0, 0, 0));
-        g.DrawString(L"E", 1, &font, textRect, &format, &glyph);
-    }
+    HRSRC resource = FindResourceW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(resourceId), RT_RCDATA);
+    HGLOBAL loaded = resource ? LoadResource(GetModuleHandleW(nullptr), resource) : nullptr;
+    DWORD imageSize = resource ? SizeofResource(GetModuleHandleW(nullptr), resource) : 0;
+    const void* imageData = loaded ? LockResource(loaded) : nullptr;
+    if (!imageData || !imageSize) return nullptr;
+    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, imageSize);
+    if (!memory) return nullptr;
+    void* target = GlobalLock(memory);
+    if (!target) { GlobalFree(memory); return nullptr; }
+    memcpy(target, imageData, imageSize);
+    GlobalUnlock(memory);
+    IStream* stream = nullptr;
+    if (CreateStreamOnHGlobal(memory, TRUE, &stream) != S_OK) { GlobalFree(memory); return nullptr; }
     HICON icon = nullptr;
-    if (bitmap.GetHICON(&icon) != Ok) return nullptr;
+    {
+        Bitmap source(stream);
+        if (source.GetLastStatus() == Ok) {
+            Bitmap bitmap(size, size, PixelFormat32bppARGB);
+            Graphics g(&bitmap);
+            g.SetCompositingMode(CompositingModeSourceCopy);
+            g.SetCompositingQuality(CompositingQualityHighQuality);
+            g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
+            g.SetPixelOffsetMode(PixelOffsetModeHighQuality);
+            g.Clear(Color(0, 0, 0, 0));
+            // Apply another 15% reduction to the previous 85% scale (72.25% total).
+            const int glyphSize = (int)(size * 0.7225f + 0.5f);
+            const int offset = (size - glyphSize) / 2;
+            g.DrawImage(&source, Rect(offset, offset, glyphSize, glyphSize), 0, 0,
+                (INT)source.GetWidth(), (INT)source.GetHeight(), UnitPixel);
+            bitmap.GetHICON(&icon);
+        }
+    }
+    stream->Release();
     return icon;
 }
 static UINT trayDpi() {
@@ -103,8 +102,8 @@ static bool refreshTrayIcons(bool force = false) {
     const UINT dpi = trayDpi();
     const int size = trayIconSize(dpi);
     if (!force && _iconV && _iconE && dpi == _iconDpi && size == _iconSize) return true;
-    HICON nextV = makeIcon(L'V', size);
-    HICON nextE = makeIcon(L'E', size);
+    HICON nextV = makeIcon(IDR_TRAY_V, size);
+    HICON nextE = makeIcon(IDR_TRAY_E, size);
     if (!nextV || !nextE) {
         if (nextV) DestroyIcon(nextV);
         if (nextE) DestroyIcon(nextE);
