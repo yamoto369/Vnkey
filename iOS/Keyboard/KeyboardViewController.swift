@@ -301,6 +301,34 @@ final class KeyboardViewController: UIInputViewController, KeyboardViewDelegate 
         comingUp = false; setContentVisible(true)
         keyboard.playMarkIntro()
         readSelection()   // opened onto text that's already selected
+        if !showDebugNudge() { nudgeSoon(after: 2.3) }   // after the mark's intro
+    }
+
+    /// When the strip's nudges show (Nudges.swift).
+    private let nudges = Nudges()
+    private var nudgeWired = false
+    /// The nudge due, if any, a moment from now, on an empty strip while no word is being typed.
+    private func nudgeSoon(afterUndo: Bool = false, after delay: Double = 0.8) {
+        if !nudgeWired {
+            nudgeWired = true
+            keyboard.onNudge = { [weak self] k, acted in if acted { self?.nudges.acted(k) } else { self?.nudges.closed(k) } }
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
+            guard let self, self.keyboard.suggestions.isEmpty, self.wordPrefix.isEmpty, self.keyboard.bar.nudge == nil,
+                  let k = self.nudges.due(afterUndo: afterUndo) else { return }
+            self.nudges.shown(k)
+            self.keyboard.bar.showNudge(k)
+        }
+    }
+
+    /// The app's debug menu asked for a nudge (VKSettings.Key.debugNudge): shown once, after the mark's intro.
+    /// The keyboard only reads the shared defaults, so what it showed is kept in its own.
+    @discardableResult private func showDebugNudge() -> Bool {
+        guard let v = VKSettings.defaults.string(forKey: VKSettings.Key.debugNudge), v != UserDefaults.standard.string(forKey: "debugNudgeShown"),
+              let k = NudgeView.Kind(rawValue: String(v.split(separator: ":").first ?? "")) else { return false }
+        UserDefaults.standard.set(v, forKey: "debugNudgeShown")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) { [weak self] in self?.keyboard.bar.showNudge(k) }
+        return true
     }
 
     override func textDidChange(_ textInput: UITextInput?) {
@@ -406,14 +434,16 @@ final class KeyboardViewController: UIInputViewController, KeyboardViewDelegate 
             if keyboard.shift == .on { keyboard.shift = .off }
             if keyboard.layer_ != .letters && (c == "'" ) { keyboard.layer_ = .letters }
         case .space:
+            let ended = (lastContext ?? "").last.map { ".!?".contains($0) } ?? false
             if !autoCorrectAtBreak() { spaceKey() }
             clearWord()
+            if ended { nudgeSoon() }   // a sentence's end: a quiet moment
         case .returnKey:
             clearWord()
             if keyboard.layer_ == .numbers || keyboard.layer_ == .symbols { keyboard.layer_ = .letters }   // like space: a new line starts on ABC (Tony)
             type("\n")
         case .backspace:
-            if undoCorrection() { break }
+            if undoCorrection() { nudges.undone(); nudgeSoon(afterUndo: true); break }
             backspace()
         case .shift:
             let t = now
@@ -425,6 +455,7 @@ final class KeyboardViewController: UIInputViewController, KeyboardViewDelegate 
             keyboard.layer_ = l
             if l == .letters { updateAutoShift(lastContext ?? "") }   // back on ABC after a new line or ". ": the capital shows
         case .language:
+            nudges.manualSwitch(); nudgeSoon(afterUndo: true)
             lastCorrection = nil
             driver.manualSwitch(at: now)
             fieldLanguage = nil
@@ -494,6 +525,7 @@ final class KeyboardViewController: UIInputViewController, KeyboardViewDelegate 
 
     private func type(_ s: String) {
         let e = driver.typeCharacter(s, now: now)
+        if e.languageChanged { nudges.autoSwitched() }
         apply(e)
     }
 
@@ -502,7 +534,9 @@ final class KeyboardViewController: UIInputViewController, KeyboardViewDelegate 
             wordPrefix.removeLast(); wordXs.removeLast(); wordYs.removeLast()
             wordCaps = min(wordCaps, wordPrefix.count)
         }
-        apply(driver.backspace(at: now))
+        let e = driver.backspace(at: now)
+        if e.languageChanged { nudges.undone(); nudgeSoon(afterUndo: true) }   // Backspace put back what an auto switch changed
+        apply(e)
     }
 
     private func apply(_ e: VKEditResult) {
@@ -690,6 +724,7 @@ final class KeyboardViewController: UIInputViewController, KeyboardViewDelegate 
         driver.resetContext()
         if (driver.language == 1) != vietnamese && driver.autoSwitch {
             driver.language = vietnamese ? 1 : 0
+            nudges.autoSwitched()
             saveLanguage(); refresh()
         }
         lastCorrection = recordUndo ? (old, insert) : nil

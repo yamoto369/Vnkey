@@ -154,3 +154,92 @@ final class CornerKeyInvisibleTests: XCTestCase {
         XCTAssertEqual(cap?.normalColor, .clear)
     }
 }
+
+/// Nudges in the empty suggestion strip (Tony's words): rendered at rest, in light and dark.
+final class NudgeRenderTests: XCTestCase {
+    func testRenderNudges() {
+        KeyboardView.barOn = true
+        KeyboardView.langStyle = 1
+        for dark in [false, true] {
+            for k in [NudgeView.Kind.review, .bug] {
+                let kb = KeyboardView(frame: CGRect(x: 0, y: 0, width: 402, height: KeyboardView.keyboardHeight(compactHeight: false)))
+                kb.dark = dark
+                kb.languageShort = "VI"; kb.languageTitle = "Tiếng Việt"
+                kb.backgroundColor = dark ? UIColor(white: 0.17, alpha: 1) : UIColor(red: 0.82, green: 0.83, blue: 0.86, alpha: 1)
+                kb.layoutIfNeeded()
+                kb.bar.showNudge(k)
+                kb.bar.layer.removeAllAnimations()
+                kb.bar.subviews.forEach { v in v.layer.removeAllAnimations(); v.subviews.forEach { $0.layer.removeAllAnimations() } }
+                RunLoop.main.run(until: Date().addingTimeInterval(2.5))
+                kb.layoutIfNeeded()
+                let img = UIGraphicsImageRenderer(bounds: kb.bounds).image { ctx in kb.layer.render(in: ctx.cgContext) }
+                try? FileManager.default.createDirectory(atPath: "/tmp/claude-501/layouts", withIntermediateDirectories: true)
+                try? img.pngData()?.write(to: URL(fileURLWithPath: "/tmp/claude-501/layouts/nudge_\(k.rawValue)_\(dark ? "dark" : "light").png"))
+            }
+        }
+    }
+}
+
+/// When the nudges show (Nudges.swift), on a clock the test moves.
+final class NudgesTests: XCTestCase {
+    private var t = Date(timeIntervalSince1970: 1_800_000_000)
+    private func make() -> Nudges {
+        let d = UserDefaults(suiteName: "nudges-test-\(UUID().uuidString)")!
+        return Nudges(defaults: d, clock: { [unowned self] in self.t })
+    }
+    func testReviewAfter100CleanSwitches() {
+        let n = make()
+        for _ in 0..<99 { n.autoSwitched() }
+        XCTAssertNil(n.due())
+        n.autoSwitched()
+        XCTAssertEqual(n.due(), .review)
+        n.shown(.review)
+        XCTAssertNil(n.due(), "once a day at most")
+        t += 86401
+        XCTAssertEqual(n.due(), .review)
+        n.closed(.review)
+        t += 86401
+        XCTAssertNil(n.due(), "✕: again at 500")
+        for _ in 0..<400 { n.autoSwitched() }
+        XCTAssertEqual(n.due(), .review)
+        n.acted(.review)
+        t += 86401
+        XCTAssertNil(n.due(), "rated: never again")
+    }
+    func testNoReviewRightAfterAnUndo() {
+        let n = make()
+        for _ in 0..<95 { n.autoSwitched() }
+        n.undone()
+        for _ in 0..<10 { n.autoSwitched() }
+        XCTAssertNil(n.due(), "an undo in the last 20 switches")
+        for _ in 0..<10 { n.autoSwitched() }
+        XCTAssertEqual(n.due(), .review)
+    }
+    func testBugAfterTheSecondUndoInADay() {
+        let n = make()
+        n.undone()
+        XCTAssertNil(n.due(afterUndo: true))
+        n.undone()
+        XCTAssertEqual(n.due(afterUndo: true), .bug)
+        XCTAssertNil(n.due(), "only right after an undo")
+        n.shown(.bug)
+        n.undone()
+        XCTAssertNil(n.due(afterUndo: true), "once a day")
+        t += 86401; n.undone(); n.undone()
+        XCTAssertEqual(n.due(afterUndo: true), .bug)
+        n.closed(.bug)
+        t += 86401; n.undone(); n.undone()
+        XCTAssertNil(n.due(afterUndo: true), "✕: 2 weeks")
+        t += 14 * 86400; n.undone(); n.undone()
+        XCTAssertEqual(n.due(afterUndo: true), .bug)
+    }
+    func testManualSwitchRightAfterAnAutoOneIsAnUndo() {
+        let n = make()
+        n.autoSwitched(); t += 2; n.manualSwitch()
+        n.autoSwitched(); t += 2; n.manualSwitch()
+        XCTAssertEqual(n.due(afterUndo: true), .bug)
+        let m = make()
+        m.autoSwitched(); t += 10; m.manualSwitch(); m.manualSwitch()
+        XCTAssertNil(m.due(afterUndo: true), "a switch long after isn't an undo")
+    }
+}

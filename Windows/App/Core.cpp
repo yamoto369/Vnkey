@@ -48,6 +48,8 @@ static HHOOK _kbHook = nullptr, _mouseHook = nullptr;
 static HWINEVENTHOOK _focusHook = nullptr, _fgHook = nullptr;
 static vKeyHookState* pData = nullptr;
 static unsigned _flag = 0, _lastFlag = 0;
+static bool _modifierChordUsed = false;   // modifiers used with a click or another key cannot trigger a modifier-only hotkey
+static DWORD _hotkeyVk = 0;               // suppress auto-repeat until the switch key is released
 static Uint16 _keycode = 0;
 static DWORD _keyVk = 0, _keyExtended = 0;   // the key as Windows sent it: re-sent as is after a restore (Home, numpad 1...)
 static bool _hasJustUsedHotKey = false;
@@ -359,14 +361,19 @@ static void SendEngineOutput() {
 }
 
 // ---- Hotkey ------------------------------------------------------------------------------
-static bool checkHotKey(int hotKeyData, bool checkKeyCode = true) {
+static bool checkHotKey(int hotKeyData, unsigned flags, bool checkKeyCode = true) {
     if ((hotKeyData & (~0x8000)) == EMPTY_HOTKEY) return false;
-    if (HAS_CONTROL(hotKeyData) ^ GET_BOOL(_lastFlag & F_CONTROL)) return false;
-    if (HAS_OPTION(hotKeyData) ^ GET_BOOL(_lastFlag & F_ALT)) return false;
-    if (HAS_COMMAND(hotKeyData) ^ GET_BOOL(_lastFlag & F_WIN)) return false;
-    if (HAS_SHIFT(hotKeyData) ^ GET_BOOL(_lastFlag & F_SHIFT)) return false;
+    if (HAS_CONTROL(hotKeyData) ^ GET_BOOL(flags & F_CONTROL)) return false;
+    if (HAS_OPTION(hotKeyData) ^ GET_BOOL(flags & F_ALT)) return false;
+    if (HAS_COMMAND(hotKeyData) ^ GET_BOOL(flags & F_WIN)) return false;
+    if (HAS_SHIFT(hotKeyData) ^ GET_BOOL(flags & F_SHIFT)) return false;
     if (checkKeyCode && GET_SWITCH_KEY(hotKeyData) != _keycode) return false;
     return true;
+}
+// A key or click used the held modifiers: releasing them is not a modifier-only hotkey.
+static void cancelModifierHotkey() {
+    _lastFlag = 0;
+    if (_flag & (F_SHIFT | F_CONTROL | F_ALT | F_WIN)) _modifierChordUsed = true;
 }
 static void switchLanguage(const char* via) {
     PauseAutoSwitchAfterManual();
@@ -548,34 +555,42 @@ static LRESULT CALLBACK keyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
 
     // modifier keys: track them, and detect a modifiers-only hotkey on release
     if (modifierVk(k->vkCode, down)) {
-        if (_lastFlag == 0 || _lastFlag < _flag) _lastFlag = _flag;
+        if (_modifierChordUsed) {
+            _lastFlag = 0;
+            if (!(_flag & (F_SHIFT | F_CONTROL | F_ALT | F_WIN))) _modifierChordUsed = false;
+        } else if (_lastFlag == 0 || _lastFlag < _flag) _lastFlag = _flag;
         else if (_lastFlag > _flag) {
-            // only a hotkey without a key (a key hotkey fired on its key-down; _keycode is just the last key typed, so
-            // Alt+Z, then Alt alone, flipped back). The key-up goes on: a swallowed one leaves the modifier held down.
-            bool hit = GET_SWITCH_KEY(vSwitchKeyStatus) == 0xFE && checkHotKey(vSwitchKeyStatus, false);
+            // Modifier-only hotkeys are evaluated against the most modifiers held before release.
+            bool hit = GET_SWITCH_KEY(vSwitchKeyStatus) == 0xFE && checkHotKey(vSwitchKeyStatus, _lastFlag, false);
             _lastFlag = 0; _hasJustUsedHotKey = hit;
             if (hit) switchLanguage("hotkey");
         }
         return CallNextHookEx(_kbHook, nCode, wParam, lParam);
     }
-    if (!down) return CallNextHookEx(_kbHook, nCode, wParam, lParam);
+    if (!down) { if (k->vkCode == _hotkeyVk) _hotkeyVk = 0; return CallNextHookEx(_kbHook, nCode, wParam, lParam); }
 
     _keycode = engineKey(k->vkCode);
     _keyVk = k->vkCode; _keyExtended = (k->flags & LLKHF_EXTENDED) ? KEYEVENTF_EXTENDEDKEY : 0;
     if (_keycode == KEY_EMPTY) {   // F-keys, media keys...: not ours. A key typing a character still ends the word.
-        _lastFlag = 0;   // Ctrl+Shift+F5, Ctrl+Shift+numpad +: releasing Ctrl+Shift afterwards isn't the hotkey
+        cancelModifierHotkey();   // F-keys and other unhandled keys must not leave a modifier-only hotkey armed
         if (unmodeledKeyEndsWord(k->vkCode)) { TLEndWord("other"); resetTyping(); }
         return CallNextHookEx(_kbHook, nCode, wParam, lParam);
     }
 
-    // switch language hotkey
-    if (GET_SWITCH_KEY(vSwitchKeyStatus) != _keycode) _lastFlag = 0;
-    else if (checkHotKey(vSwitchKeyStatus, GET_SWITCH_KEY(vSwitchKeyStatus) != 0xFE)) { switchLanguage("hotkey"); _lastFlag = 0; _hasJustUsedHotKey = true; return 1; }
-    _hasJustUsedHotKey = _lastFlag != 0;
+    // Password fields receive keys exactly as typed: no hotkey, Telex, auto switch, or Backspace undo.
+    if (site::focusedIsPassword()) { cancelModifierHotkey(); _hotkeyVk = 0; resetTyping(); return CallNextHookEx(_kbHook, nCode, wParam, lParam); }
 
-    // a password field gets the keys exactly as typed, in both languages: no Telex, no auto switch, no Backspace undo (also
-    // right after a focus change, until the field has been checked)
-    if (site::focusedIsPassword()) { resetTyping(); return CallNextHookEx(_kbHook, nCode, wParam, lParam); }
+    // Switch language hotkey.
+    if (GET_SWITCH_KEY(vSwitchKeyStatus) != _keycode) { cancelModifierHotkey(); _hotkeyVk = 0; }
+    else {
+        bool repeat = k->vkCode == _hotkeyVk;
+        _hotkeyVk = k->vkCode;
+        if (checkHotKey(vSwitchKeyStatus, _flag, GET_SWITCH_KEY(vSwitchKeyStatus) != 0xFE)) {
+            if (repeat) return 1;   // one switch per physical key press, not per auto-repeat
+            switchLanguage("hotkey"); _lastFlag = 0; _hasJustUsedHotKey = true; return 1;
+        }
+    }
+    _hasJustUsedHotKey = _lastFlag != 0;
 
     // Backspace right after an automatic correction undoes it
     if (_keycode == KEY_DELETE && _autoFixUndo.active && !(OTHER_CONTROL_KEY)) { if (UndoAutoFixWithBackspace()) return 1; }
@@ -604,6 +619,8 @@ static LRESULT CALLBACK keyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
 
 static LRESULT CALLBACK mouseHook(int nCode, WPARAM wParam, LPARAM lParam) {
     if (nCode == HC_ACTION && !_frontAppBlacklisted && (wParam == WM_LBUTTONDOWN || wParam == WM_RBUTTONDOWN || wParam == WM_MBUTTONDOWN)) {
+        cancelModifierHotkey();
+        _hotkeyVk = 0;   // a missed key-up (focus change or lock screen) must not swallow the next hotkey
         _autoFixUndo.active = false; TLNoteClick();
         if (vLanguage == 0) ResetEnglishWord(true);
         else vKeyHandleEvent(vKeyEvent::Mouse, vKeyEventState::MouseDown, 0);
@@ -611,7 +628,7 @@ static LRESULT CALLBACK mouseHook(int nCode, WPARAM wParam, LPARAM lParam) {
     return CallNextHookEx(_mouseHook, nCode, wParam, lParam);
 }
 
-static VOID CALLBACK foregroundHook(HWINEVENTHOOK, DWORD, HWND, LONG, LONG, DWORD, DWORD) { updateOtherInputLanguage(); onForegroundChanged(); }
+static VOID CALLBACK foregroundHook(HWINEVENTHOOK, DWORD, HWND, LONG, LONG, DWORD, DWORD) { _hotkeyVk = 0; updateOtherInputLanguage(); onForegroundChanged(); }
 
 bool start() {
     if (_kbHook) return true;
