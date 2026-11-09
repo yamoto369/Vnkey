@@ -104,7 +104,7 @@ static std::string utf8(const std::wstring& w) {
 static std::string jsonEscape(const std::string& s) {
     std::string o; for (unsigned char c : s) { if (c == '"' || c == '\\') { o += '\\'; o += c; } else if (c < 0x20) { char b[8]; snprintf(b, sizeof b, "\\u%04x", c); o += b; } else o += c; } return o;
 }
-std::wstring typingLogPath() { return prefs::appDataDir() + L"\\typing-log.jsonl"; }
+std::wstring typingLogPath() { return prefs::logsDir() + L"\\typing-log.jsonl"; }
 static std::string TLTime() {
     SYSTEMTIME st; GetLocalTime(&st); TIME_ZONE_INFORMATION tz; DWORD r = GetTimeZoneInformation(&tz);
     long bias = -(tz.Bias + (r == TIME_ZONE_ID_DAYLIGHT ? tz.DaylightBias : tz.StandardBias));

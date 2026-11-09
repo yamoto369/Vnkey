@@ -1,11 +1,10 @@
-// Settings in HKCU\Software\Vikey, same key names as the macOS app's UserDefaults.
+// Preferences stored in the portable data/settings.ini file.
 #pragma once
 #include <windows.h>
 #include <string>
 #include <vector>
 
 namespace vikey { namespace prefs {
-
 int getInt(const wchar_t* key, int fallback);
 bool has(const wchar_t* key);
 void setInt(const wchar_t* key, int value);
@@ -17,14 +16,12 @@ std::vector<std::wstring> getStringList(const wchar_t* key);
 void setStringList(const wchar_t* key, const std::vector<std::wstring>& values);
 void remove(const wchar_t* key);
 
-/// %LOCALAPPDATA%\Vikey, created if needed.
+// Portable data directory beside the executable. Created on demand.
 std::wstring appDataDir();
+std::wstring logsDir();
 
-/// Run at login via HKCU\...\Run.
+// Windows startup registration remains an OS integration and therefore uses the Run registry key.
 bool launchAtLogin();
 void setLaunchAtLogin(bool on);
 
-/// Settings from an OpenKey install (HKCU\SOFTWARE\TuyenMai\OpenKey), copied once.
-void migrateFromOpenKey();
-
-}} // namespace
+}}

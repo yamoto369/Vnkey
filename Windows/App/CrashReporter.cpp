@@ -163,6 +163,14 @@ static void writeReport(const char* reason, EXCEPTION_RECORD* rec, CONTEXT* ctx)
     }
     if (ctx) addStack(o, *ctx);
 
+    // Create the data/crashes folders only when a crash report is actually needed.
+    if (!_dir[0]) return;
+    wchar_t dataDir[MAX_PATH] = {0};
+    wcsncpy_s(dataDir, _dir, _TRUNCATE);
+    wchar_t* lastSlash = wcsrchr(dataDir, L'\\');
+    if (lastSlash) *lastSlash = L'\0';
+    CreateDirectoryW(dataDir, nullptr);
+    CreateDirectoryW(_dir, nullptr);
     wchar_t path[MAX_PATH];
     _snwprintf_s(path, _TRUNCATE, L"%s\\Vikey-%04d-%02d-%02d-%02d%02d%02d.txt", _dir, t.wYear, t.wMonth, t.wDay, t.wHour, t.wMinute, t.wSecond);
     HANDLE f = CreateFileW(path, GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -187,7 +195,7 @@ static void onInvalidParameter(const wchar_t*, const wchar_t*, const wchar_t*, u
 static void onAbort(int) { fail("abort"); }
 
 void install() {
-    // Store crash logs beside Vikey.exe so the whole app can remain portable.
+    // Prepare the destination path without creating data/crashes during normal startup.
     wchar_t exe[MAX_PATH] = {0};
     DWORD length = GetModuleFileNameW(nullptr, exe, MAX_PATH);
     if (length > 0 && length < MAX_PATH) {
@@ -195,10 +203,8 @@ void install() {
         wchar_t* forwardSlash = wcsrchr(exe, L'/');
         if (!slash || (forwardSlash && forwardSlash > slash)) slash = forwardSlash;
         if (slash) *slash = L'\0';
-        wcsncpy_s(_dir, exe, _TRUNCATE);
-        if (wcslen(_dir) + 8 < MAX_PATH) {
-            wcscat_s(_dir, L"\\Crashes");
-            CreateDirectoryW(_dir, nullptr);
+        if (wcslen(exe) + 15 < MAX_PATH) {
+            _snwprintf_s(_dir, _TRUNCATE, L"%s\\data\\crashes", exe);
         } else {
             _dir[0] = L'\0';
         }

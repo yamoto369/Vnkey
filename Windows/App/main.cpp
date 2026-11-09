@@ -219,7 +219,6 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int) {
         MessageBoxW(nullptr, L"Không khởi tạo được bộ vẽ icon.", L"Vikey", MB_ICONERROR);
         return 1;
     }
-    vikey::prefs::migrateFromOpenKey();
     // Remove obsolete network-feature state from older installations.
     std::wstring oldUpdate = vikey::prefs::getString(L"PendingUpdatePath", L"");
     if (!oldUpdate.empty()) DeleteFileW(oldUpdate.c_str());
