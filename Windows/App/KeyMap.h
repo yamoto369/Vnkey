@@ -1,6 +1,6 @@
 // Windows virtual-key codes -> the engine's key codes (Engine/platforms/keycodes.h).
-// The engine is compiled with the canonical engine key codes on every platform; this is the only place
-// Windows codes are translated. Letters use VK_A..VK_Z, which already follow the active
+// The shared engine uses canonical logical key codes; this is the only place
+// Windows virtual keys are translated. Letters use VK_A..VK_Z, which already follow the active
 // layout (Dvorak etc.), so no extra layout compatibility step is needed for letters.
 #pragma once
 #include <windows.h>

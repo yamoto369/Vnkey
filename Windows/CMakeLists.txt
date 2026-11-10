@@ -26,7 +26,7 @@ target_include_directories(vikey_engine PUBLIC ${ENGINE} ${ENGINE}/platforms)
 target_compile_options(vikey_engine PUBLIC /utf-8 /W0 /EHsc /O2 /bigobj)
 target_compile_definitions(vikey_engine PUBLIC _SILENCE_ALL_CXX17_DEPRECATION_WARNINGS NOMINMAX WIN32_LEAN_AND_MEAN _CRT_SECURE_NO_WARNINGS)
 
-# A separate engine build with AS_TESTING for the simulator (check.sh compiles sim with -DAS_TESTING).
+# A separate engine build with AS_TESTING for the simulator (Windows/check.ps1 builds sim with -DAS_TESTING).
 add_library(vikey_engine_testing STATIC ${ENGINE_SRC})
 target_include_directories(vikey_engine_testing PUBLIC ${ENGINE} ${ENGINE}/platforms)
 target_compile_definitions(vikey_engine_testing PUBLIC AS_TESTING)

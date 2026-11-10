@@ -305,18 +305,13 @@ h1 span{white-space:nowrap}
 .howto{max-width:620px;margin:0 auto 26px;text-align:left;border:1px solid var(--line);border-radius:14px;padding:4px 20px}
 .howto summary{cursor:pointer;font-weight:600;padding:12px 0;text-align:center}
 .howto h3{font-size:16px;margin:14px 0 6px}.howto ol{margin:0 0 8px;padding-left:20px;color:var(--muted);font-size:15px}.howto code{word-break:break-all}
-.sendbox .nicon{width:52px;height:52px;border-radius:14px;background:var(--chip);display:flex;align-items:center;justify-content:center}
-.sendbox .nicon .ic{width:28px;height:28px;fill:var(--blue)}
 @media(max-width:900px){.pgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.pgrid .pcard.mine{grid-column:1/-1;order:-1}}
 @media(max-width:380px){.pgrid{grid-template-columns:1fr}}
 .btn .ic,.btn .ic use{fill:currentColor}
 .pcard .alt.none{visibility:hidden}
-.sendbox .err{min-height:0}.sendbox .err:empty{display:none}
 @media(max-width:600px){.plats{gap:6px 22px}.plats span{display:none}.plats .ic{width:22px;height:22px}}
-.sendbox p,.sendbox h3{text-wrap:balance}.sendbox input[type=email]:focus{outline:2px solid var(--blue);outline-offset:1px;border-color:transparent}
 .pcard .two{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin-top:auto}.pcard .two .btn{width:auto;margin-top:0;padding:10px 6px}
 .pcard .two.three{grid-template-columns:repeat(3,minmax(0,1fr))}.pcard .two.three .btn{font-size:14px}
-.sendbox .ts{min-height:65px}
 /* feedback page */
 .fbpage{max-width:620px;padding-top:56px;padding-bottom:80px}
 .fbform{display:grid;gap:4px;margin-top:24px}

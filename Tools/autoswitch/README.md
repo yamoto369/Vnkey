@@ -1,42 +1,43 @@
 # Auto switch by typing: word lists and tests
 
-The engine (`Engine/Engine.cpp`, "Auto switch language from typing behavior")
-decides when a word typed in one mode belongs to the other language. It uses
-`engine/AutoSwitchData.h`, generated here.
+The shared C++ engine (`Engine/Engine.cpp`) decides when a word typed in one
+language mode belongs to the other language. Its frequency tables are generated
+into `Engine/AutoSwitchData.h`.
 
-## Rebuild the word lists
-
-```sh
-cd Tools/autoswitch
-swiftc -O -o /tmp/spellfilter spellfilter.swift
-cut -d' ' -f1 en_50k.txt | grep -E '^[a-z]{2,}$' | /tmp/spellfilter > en_spell_ok.txt
-python3 build_dict.py
-```
+## Word-list inputs
 
 - `vi_50k.txt`, `en_50k.txt`: word frequencies from FrequencyWords by Hermit Dave (OpenSubtitles 2018), CC BY-SA 4.0.
-- `en_spell_ok.txt`: the English words the macOS spell checker accepts, lowercase or capitalized. This drops subtitle junk.
-- `en_extra.txt`: chat shorthand without apostrophes, plus developer words. These are always treated as English.
+- `en_spell_ok.txt`: checked-in English allowlist used to filter subtitle noise. It is reviewed data, not tied to an OS spell-check API.
+- `en_extra.txt`: chat shorthand and developer vocabulary always treated as English.
+- `en_code.txt`: programming words and identifiers.
 
-## Test
+## Regenerate engine data (Windows)
 
-```sh
-cd Tools/autoswitch/test
-E=../../../Engine
-clang++ -std=c++17 -O2 -w -I$E -I$E/platforms -o harness harness.cpp $E/Engine.cpp $E/Vietnamese.cpp $E/Macro.cpp $E/SmartSwitchKey.cpp $E/ConvertTool.cpp
-python3 run_cases.py   # regression cases in cases.tsv
-python3 bulk.py        # accuracy over the 20k English / 3.4k Vietnamese word lists
-./harness bench        # cost of one English-mode check
+Run from the repository root in PowerShell:
+
+```powershell
+python Tools/autoswitch/build_dict.py
+python Tools/autoswitch/build_forms.py C:\path\to\hunspell-en_US
 ```
 
-`harness.cpp` drives the real engine and mirrors what `App/Core/VikeyCore.mm` does with its output.
+The second command is optional when English word forms have not changed. Its input
+directory must contain `en_US.dic` and `en_US.aff`; install Hunspell for Windows
+and make sure `unmunch.exe` is available on `PATH`.
 
-## Lock down behavior (run before and after any rule change)
+## Validate the engine (Windows)
 
-```sh
-Tools/autoswitch/check.sh            # rule cases + golden snapshots + Telex lock + metrics
-Tools/autoswitch/check.sh update     # accept the current behavior after reviewing the diffs
-EXTRA="-DAS_VN_FLOOR=30" Tools/autoswitch/check.sh   # try a tweak without editing code
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File Windows/check.ps1
 ```
 
-- `rules/rules.tsv`: every decided rule with tagged cases (see DECISIONS.md).
-- `rules/golden/`: snapshots of typing the chat corpus (with and without typos), every syllable in Vietnamese mode, and the metrics.
+This builds the shared engine harness, simulator, driver tests and touch simulator
+with MSVC, then runs rule cases, reported-bug regressions, golden snapshots,
+driver/simulator parity, realistic typing, undo, touch correction and performance
+checks.
+
+- `rules/rules.tsv`: decided rule cases (see `DECISIONS.md`).
+- `rules/golden/`: locked output snapshots and quality baselines.
+- `test/cases.tsv`: additional engine test cases.
+
+After changing a rule, add regression cases and review the golden-data diff before
+accepting any new baseline.

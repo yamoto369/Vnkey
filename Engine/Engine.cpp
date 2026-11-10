@@ -27,8 +27,8 @@ static vector<Uint8> _charKeyCode = {
 static vector<Uint8> _breakCode = {
     KEY_ESC, KEY_TAB, KEY_ENTER, KEY_RETURN, KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP, KEY_COMMA, KEY_DOT,
     KEY_SLASH, KEY_SEMICOLON, KEY_QUOTE, KEY_BACK_SLASH, KEY_MINUS, KEY_EQUALS, KEY_BACKQUOTE, KEY_TAB
-    // The engine always uses the macOS key codes (platforms/mac.h); every platform layer maps its own
-    // codes to these (Windows: VK_* -> KEY_*, with Insert/Home/End/Delete/PgUp/PgDn sent as KEY_ESC).
+    // The engine uses stable logical key identifiers from platforms/keycodes.h. The Windows adapter
+    // maps native virtual keys to them (Insert/Home/End/Delete/PgUp/PgDn use KEY_ESC as a break key).
 };
 
 
@@ -1326,7 +1326,7 @@ void vAutoSwitchForget() {
     navForget();   //and the word kept for a ← → round trip (D51): after a switch or a click → would bring it back elsewhere
     _asPrevCount = 0;
     _asWordStartOk = true;   //a fresh context (language switched, app changed): the next word stands on its own
-    _afterDigit = false;     //not after a digit either: the one before the switch may be far back ("1" ⌥Z "abc " ⌥Z "wa" gave "wa", D33)
+    _afterDigit = false;     //not after a digit either: the one before the switch may be far back ("1" [switch] "abc " [switch] "wa" gave "wa", D33)
     _spaceCount = 0; _specialChar.clear(); _typingStates.clear();   //and Backspace can't reopen a word from before it
     if (_asConvertedN > 0) {   //except the word auto switch just turned Vietnamese: it is on screen before the break key,
         //so Backspace over that key reopens it like a word typed in Vietnamese ("treen " ⌫ + s -> "trến")
