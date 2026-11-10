@@ -63,10 +63,8 @@ static HICON makeIcon(int resourceId, int size) {
             g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
             g.SetPixelOffsetMode(PixelOffsetModeHighQuality);
             g.Clear(Color(0, 0, 0, 0));
-            // Apply another 15% reduction to the previous 85% scale (72.25% total).
-            const int glyphSize = (int)(size * 0.7225f + 0.5f);
-            const int offset = (size - glyphSize) / 2;
-            g.DrawImage(&source, Rect(offset, offset, glyphSize, glyphSize), 0, 0,
+            // Draw the supplied transparent PNG across the tray canvas; its artwork already includes safe margins.
+            g.DrawImage(&source, Rect(0, 0, size, size), 0, 0,
                 (INT)source.GetWidth(), (INT)source.GetHeight(), UnitPixel);
             bitmap.GetHICON(&icon);
         }
