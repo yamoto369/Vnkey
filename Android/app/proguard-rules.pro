@@ -1,2 +1,0 @@
--keep class app.vikey.ime.VikeyDriver { *; }
--keepclasseswithmembernames class * { native <methods>; }
