@@ -2,11 +2,9 @@
 //  Driver.h
 //  Vikey
 //
-//  Everything a platform keeps around the engine, without the platform: the English-mode word
-//  buffer, auto switch both ways, the end-of-word fix after a doubled tone key, Backspace undo of
-//  an auto-fix, and the pause after a manual switch. A keyboard sends keys in and applies the
-//  returned edits. Used by the iOS keyboard and by the simulator (so the simulator tests it).
-//  Mirrors App/Core/VikeyCore.mm, which does the same inside the macOS event tap.
+//  Shared driver state around the typing engine: the English-mode word buffer, auto switch both
+//  ways, the end-of-word fix after a doubled tone key, Backspace undo of an auto-fix, and the pause
+//  after a manual switch. Used by the Windows validation tools and the simulator.
 //
 
 #ifndef VikeyDriver_h

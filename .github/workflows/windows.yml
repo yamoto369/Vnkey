@@ -62,7 +62,7 @@ jobs:
         run: choco install ninja -y --no-progress
         shell: pwsh
 
-      - name: Build app (version from project.yml)
+      - name: Build Windows app (version from VERSION)
         if: hashFiles('Windows/App/CMakeLists.txt') != ''
         run: |
           $ver = (Get-Content VERSION -TotalCount 1).Trim()
