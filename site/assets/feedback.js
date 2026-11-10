@@ -1,12 +1,12 @@
-// The feedback form: the app opens /feedback?platform=macos&v=1.0.24; Turnstile against spam; POST /api/feedback.
+// The feedback form: the app opens /feedback?platform=windows&v=1.0.24; Turnstile against spam; POST /api/feedback.
 (() => {
   const f = document.getElementById("fb"); if (!f) return;
   const en = document.documentElement.lang === "en";
   const q = new URLSearchParams(location.search);
   const ua = navigator.userAgent;
-  const guess = /iPhone|iPad/.test(ua) ? "ios" : /Android/.test(ua) ? "android" : /Windows/.test(ua) ? "windows" : /Mac OS X/.test(ua) ? "macos" : /Linux|X11/.test(ua) ? "linux" : "web";
+  const guess = /Windows/i.test(ua) ? "windows" : "web";
   const platform = q.get("platform") || guess, version = q.get("v") || "";
-  const NAME = { macos: "macOS", windows: "Windows", linux: "Linux", ios: "iOS", android: "Android", web: "Web" };
+  const NAME = { windows: "Windows", web: "Web" };
   f.querySelector(".meta").textContent = (en ? "Sent with: " : "Gửi kèm: ") + "Vikey " + (version ? version + " " : "") + (en ? "for " : "cho ") + (NAME[platform] || platform);
   const err = f.querySelector(".err"), btn = f.querySelector("[type=submit]");
   // attachments: picked or dropped files, listed with a remove button; checked here and again by the server
