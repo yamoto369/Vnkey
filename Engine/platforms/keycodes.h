@@ -5,7 +5,7 @@
 #ifndef VIKEY_ENGINE_KEYCODES_H
 #define VIKEY_ENGINE_KEYCODES_H
 
-//define Key code for mac keyboard
+// Canonical key identifiers shared by the Windows adapter and typing engine.
 #define KEY_ESC                                 53
 #define KEY_DELETE                              51
 #define KEY_TAB                                 48

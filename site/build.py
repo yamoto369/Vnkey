@@ -10,7 +10,7 @@ PAGES_EN = os.path.join(ROOT, "pages_en")   # English (D31), same file names
 DIST = os.path.join(ROOT, "dist")
 YEAR = datetime.date.today().year
 SITE = "https://vikey.app"
-GITHUB = "https://github.com/tonyminibot/Vikey"
+GITHUB = "https://github.com/yamoto369/Vnkey"
 
 T = {   # layout text per language (D31: Vietnamese at /, English at /en/)
     "vi": dict(features="Chức năng", faq="Câu hỏi", changelog="Phiên bản", download="Tải về", home="Trang chủ", support="Hỗ trợ",
