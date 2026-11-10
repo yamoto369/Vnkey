@@ -1,5 +1,5 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
-# CodeRabbit AI review for Vikey (installed 2026-10-30 on tonyminibot/Vikey only).
+# CodeRabbit AI review for yamoto369/Vnkey (Windows-only Vikey project).
 # It reviews pull requests statically; nothing here runs contributor code.
 language: "en-US"
 reviews:

@@ -57,7 +57,7 @@ HEAD = """<!doctype html><html lang="{lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{description}">
-<link rel="icon" href="/assets/icon.png"><link rel="apple-touch-icon" href="/assets/icon.png">
+<link rel="icon" href="/assets/icon.png">
 <meta property="og:site_name" content="Vikey - Gõ tiếng Việt"><meta name="application-name" content="Vikey - Gõ tiếng Việt"><meta property="og:title" content="{title}"><meta property="og:description" content="{description}">
 <meta property="og:image" content="{site}/assets/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:type" content="website"><meta property="og:url" content="{site}{path}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{site}/assets/og.png">
@@ -86,7 +86,7 @@ def downloads(rel):
 def os_icon(p, cls="ic"):
     return f'<svg class="{cls}" aria-hidden="true"><use href="/assets/os.svg#{p}"/></svg>'
 
-def platform_cards(lang, dl):
+def windows_card(lang, dl):
     t = PTXT[lang]; d = dl.get("windows")
     shot = '<img class="pshot zoom" src="/assets/shots/dl-windows.webp" width="1200" height="900" alt="Vikey for Windows" loading="lazy">'
     if d:
@@ -102,7 +102,7 @@ def platform_cards(lang, dl):
         badge = f'<span class="badge">{t["soon"]}</span>'
     return f'<div class="pgrid"><section class="pcard{" pending" if not d else ""}" id="windows" data-os="windows">{shot}{badge}{os_icon("windows", "picon")}<h2>Windows</h2><p>Windows 10 and 11 · x64 and ARM64</p>{btn}</section></div>'
 
-def platform_row(lang, pre, dl):
+def windows_row(lang, pre, dl):
     return f'<div class="plats"><a href="{pre}/download#windows" title="Windows">{os_icon("windows")}<span>Windows</span></a></div>'
 
 def build():
@@ -131,7 +131,7 @@ def build():
         page = HEAD.format(lang=lang, title=meta.get("title", "Vikey"), description=meta.get("description", ""), site=SITE, path=path, ver=ver,
                            canonical=canonical, alternates=alternates, bodyclass=' class="one-page"' if one else "")
         dl = downloads(rel)
-        body = body.replace("<!-- PLATFORMS -->", platform_cards(lang, dl)).replace("<!-- PLATFORM_ROW -->", platform_row(lang, pre, dl))
+        body = body.replace("<!-- WINDOWS_CARD -->", windows_card(lang, dl)).replace("<!-- WINDOWS_ROW -->", windows_row(lang, pre, dl))
         script = f'<script>window.VK_DL={json.dumps(dl, separators=(",", ":"))}</script><script src="/assets/windows.js" defer></script>'
         page += nav(lang, pre, other) + body + ("" if one else footer(lang, pre)) + script + "</body></html>\n"
         win = rel.get("windows") or {}
