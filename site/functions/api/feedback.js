@@ -2,7 +2,7 @@
 // -> one row in D1 (vikey-notify.feedback); attached files go to R2 (vikey-feedback) under feedback/<id>/, their keys
 // in the row's `attachments` column (JSON list).
 const KINDS = ["bug", "idea", "other"];
-const PLATFORMS = ["macos", "windows", "linux", "ios", "android", "web"];
+const PLATFORMS = ["windows", "web"];
 const MAX_FILES = 5, MAX_FILE = 25 * 1024 * 1024, MAX_TOTAL = 50 * 1024 * 1024;
 const OK_EXT = /\.(png|jpe?g|gif|webp|heic|heif|mp4|mov|m4v|webm|txt|log|ips|crash|json|zip|pdf)$/i;
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
