@@ -65,9 +65,10 @@ jobs:
       - name: Build app (version from project.yml)
         if: hashFiles('Windows/App/CMakeLists.txt') != ''
         run: |
-          $ver = (Select-String -Path project.yml -Pattern 'MARKETING_VERSION: "([^"]+)"').Matches[0].Groups[1].Value
+          $ver = (Get-Content VERSION -TotalCount 1).Trim()
+          $build = (Get-Content BUILD_NUMBER -TotalCount 1).Trim()
           "VIKEY_VERSION=$ver" >> $env:GITHUB_ENV
-          cmake -S Windows -B Windows/build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S Windows -B Windows/build -G Ninja -DCMAKE_BUILD_TYPE=Release "-DVIKEY_VERSION=$ver" "-DVIKEY_BUILD=$build"
           cmake --build Windows/build --config Release --target vikey
         shell: pwsh
 

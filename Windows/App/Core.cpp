@@ -15,7 +15,7 @@
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "winmm.lib")
 
-// Settings the engine reads (see Engine.h). Same defaults as the macOS app.
+// Settings the engine reads (see Engine.h). Defaults for the Windows app.
 int vLanguage = 1, vSwitchKeyStatus = 0x7A000206, vCheckSpelling = 1, vUseModernOrthography = 1;
 int vRestoreIfWrongSpelling = 1, vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1;
 int vAutoSwitchByTyping = 1, vAutoSwitchModeByTyping = 1, vPerformLayoutCompat = 0;
@@ -40,7 +40,7 @@ static void PlaySwitchSound(int language) {
 static const ULONG_PTR VIKEY_EVENT_TAG = 0x0F341991;
 static const int EMPTY_HOTKEY = 0xFE0000FE;
 
-// modifier flags, mirroring CGEventFlags usage on macOS
+// modifier flags, used by the Windows keyboard hook
 enum : unsigned { F_SHIFT = 1, F_CONTROL = 2, F_ALT = 4, F_WIN = 8, F_CAPS = 16 };
 #define OTHER_CONTROL_KEY ((_flag & F_CONTROL) || (_flag & F_ALT) || (_flag & F_WIN))
 

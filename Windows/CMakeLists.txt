@@ -1,8 +1,11 @@
-# Vikey engine + test tools, cross-platform (MSVC on Windows, clang on macOS for validation).
+# Windows-only Vikey application and shared-engine validation tools.
 # Configure:  cmake -S Windows -B Windows/build -G Ninja -DCMAKE_BUILD_TYPE=Release
-# Build:      cmake --build Windows/build
+# Build:      cmake --build Windows/build --config Release
 # The test binaries land where Tools/autoswitch/check.sh and the Python scripts expect them.
 cmake_minimum_required(VERSION 3.21)
+if(NOT WIN32 OR NOT MSVC)
+  message(FATAL_ERROR "Vikey is a Windows-only project and requires the MSVC toolchain.")
+endif()
 # Static C++ runtime (/MT): Vikey.exe runs without the Visual C++ Redistributable, which the installer and zip don't ship (#79)
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 project(Vikey LANGUAGES C CXX)
