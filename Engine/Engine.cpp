@@ -1281,6 +1281,9 @@ void vSetCheckSpelling() {
 #ifndef AS_PREFER
 #define AS_PREFER 10
 #endif
+#ifndef AS_CURRENT_MODE_BIAS
+#define AS_CURRENT_MODE_BIAS 5   //about 3.2x stronger evidence required to leave the current mode
+#endif
 #ifndef AS_VN_FLOOR
 #define AS_VN_FLOOR 10      //Vietnamese words used at least ~10 per million are never switched away from
 #endif
@@ -1819,13 +1822,14 @@ static bool asShouldRestoreToEnglishCore(bool& literalOnly) {
             if (_asPrevCount >= 2 && asRawWord(_asPrev[1].raw, _asPrev[1].rawCount, p2raw))
                 vote = asTrigramVote(p2raw, !_asPrev[1].same, praw, !_asPrev[0].same, raw);
             if (vote == 0) vote = asBigramVote(praw, !_asPrev[0].same, raw);
-            if (vote != 0) return en - vn - vote >= AS_PREFER && (vn < AS_VN_FLOOR || vote <= -AS_PREFER);
+            if (vote != 0) return en - vn - vote >= AS_PREFER + ((vAutoSwitchPreferCurrentMode && vLanguage == 1 && en != AS_MISSING && vn != AS_MISSING) ? AS_CURRENT_MODE_BIAS : 0) && (vn < AS_VN_FLOOR || vote <= -AS_PREFER);
         }
     }
-    if (en != AS_MISSING && vn != AS_MISSING && en - vn >= AS_TIE_PREV && _asPrevCount >= 1 &&
+    if (en != AS_MISSING && vn != AS_MISSING && en - vn >= AS_TIE_PREV + (vAutoSwitchPreferCurrentMode ? AS_CURRENT_MODE_BIAS : 0) && _asPrevCount >= 1 &&
         _asPrev[0].same && _asPrev[0].en != AS_MISSING && _asPrev[0].vn == AS_MISSING)
         return true;   //"video call thí" -> "this"
-    return vn == AS_MISSING || (vn < AS_VN_FLOOR && en - vn >= AS_PREFER) || en - vn >= AS_VN_EXTREME;
+    const int currentModeBias = (vAutoSwitchPreferCurrentMode && vLanguage == 1 && en != AS_MISSING && vn != AS_MISSING) ? AS_CURRENT_MODE_BIAS : 0;
+    return vn == AS_MISSING || (vn < AS_VN_FLOOR && en - vn >= AS_PREFER + currentModeBias) || en - vn >= AS_VN_EXTREME + currentModeBias;
 }
 
 /** Whether to put the word back to the keys typed. A foreign word restored as typed gets back the keys
@@ -2046,7 +2050,8 @@ bool vAutoSwitchCheckEnglishWord(const Uint32* keys, const int& count,
         capVote = asCapVote(raw);
         if (capVote <= -AS_CAP_MARGIN) return false;
     }
-    if (vn == AS_MISSING || !(en == AS_MISSING || capVote >= AS_CAP_MARGIN || (en < AS_EN_FLOOR && vn - en + pairVote >= AS_PREFER))) return false;
+    const int currentModeBias = (vAutoSwitchPreferCurrentMode && vLanguage == 0 && en != AS_MISSING && vn != AS_MISSING) ? AS_CURRENT_MODE_BIAS : 0;
+    if (vn == AS_MISSING || !(en == AS_MISSING || capVote >= AS_CAP_MARGIN || (en < AS_EN_FLOOR && vn - en + pairVote >= AS_PREFER + currentModeBias))) return false;
 #ifndef AS_CAPS_VN_FLOOR
 #define AS_CAPS_VN_FLOOR 15   //all capitals convert only to a common syllable (IRS stays, not "Í"): D23, D27
 #endif

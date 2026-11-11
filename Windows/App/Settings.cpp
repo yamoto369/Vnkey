@@ -479,7 +479,7 @@ static HWND makeRecorder(HWND parent, const wchar_t* pref, int value, int x, int
 static void destroyChildren(HWND h) { std::vector<HWND> kids; for (HWND c = GetWindow(h, GW_CHILD); c; c = GetWindow(c, GW_HWNDNEXT)) kids.push_back(c); for (HWND c : kids) DestroyWindow(c); }
 
 // ---- main window -----------------------------------------------------------------------------
-enum { C_SEG = 200, C_HOTKEY, C_BEEP, C_AUTO, C_AUTO_MODE, C_PAUSE, C_SMART, C_SITE, C_MARK, C_SPELL, C_RESTORE, C_LOGIN, C_SHOWWINDOW, C_LOGKEYS, C_STYLE, C_BLACKLIST,
+enum { C_SEG = 200, C_HOTKEY, C_BEEP, C_AUTO, C_AUTO_PREFER, C_AUTO_MODE, C_PAUSE, C_SMART, C_SITE, C_MARK, C_SPELL, C_RESTORE, C_LOGIN, C_SHOWWINDOW, C_LOGKEYS, C_STYLE, C_BLACKLIST,
        L_REFRESH = 300, L_OPEN, L_CLEAR, A_LINK = 400, O_BACK = 500, O_NEXT, O_REC, O_BEEP, O_EDIT = 520,
        C_NAV_GENERAL = 600, C_NAV_ADVANCED, C_NAV_SYSTEM };
 static const UINT WM_REBUILD = WM_APP + 20;
@@ -498,12 +498,13 @@ static void addTip(HWND tip, const wchar_t* text) {
 static int _y; static int _groupTop = -1;
 static void beginGroup(const wchar_t* title) { if (title) { _titles.push_back({_y, title}); _y += 28; } _groupTop = _y; }
 static void endGroup() { _groups.push_back({_groupTop, _y}); _y += GAP; }
-static void rowLabel(const wchar_t* label, const wchar_t* tip) {
+static void rowLabel(const wchar_t* label, const wchar_t* tip, int indent = 0) {
     if (_y != _groupTop) _seps.push_back(_y);
     int ly = _y + (ROW - 24) / 2;
-    child(L"STATIC", label, SS_LEFT | SS_NOPREFIX, CONTENT_X + 18, ly, 360, 24, 0, fBody);
+    int lx = CONTENT_X + 18 + indent;
+    child(L"STATIC", label, SS_LEFT | SS_NOPREFIX, lx, ly, 360 - indent, 24, 0, fBody);
     HDC dc = GetDC(_win); int lw = textWidth(dc, fBody, label); ReleaseDC(_win, dc);
-    if (tip) { HWND t = child(L"VikeyTip", tip, 0, CONTENT_X + 18 + lw + 8, ly + 4, 16, 16, 0); addTip(t, tip); }
+    if (tip) { HWND t = child(L"VikeyTip", tip, 0, lx + lw + 8, ly + 4, 16, 16, 0); addTip(t, tip); }
 }
 static HWND row(const wchar_t* label, const wchar_t* tip, const wchar_t* cls, int id, int cw, int ch, DWORD style = 0) {
     rowLabel(label, tip);
@@ -511,6 +512,11 @@ static HWND row(const wchar_t* label, const wchar_t* tip, const wchar_t* cls, in
     _ctl[id] = c; _y += ROW; return c;
 }
 static HWND toggleRow(const wchar_t* label, const wchar_t* tip, int id, bool on) { HWND c = row(label, tip, L"VikeyToggle", id, 40, 23); setToggle(c, on); return c; }
+static HWND subToggleRow(const wchar_t* label, const wchar_t* tip, int id, bool on) {
+    rowLabel(label, tip);
+    HWND c = child(L"VikeyToggle", L"", 0, W - MARGIN - 18 - 40, _y + (ROW - 23) / 2, 40, 23, id, fBody);
+    _ctl[id] = c; setToggle(c, on); _y += ROW; return c;
+}
 static HWND recorderRow(const wchar_t* label, const wchar_t* tip, const wchar_t* pref, int value, int id) {
     rowLabel(label, tip);
     HWND c = makeRecorder(_win, pref, value, W - MARGIN - 18 - 170, _y + (ROW - 32) / 2, 170, 32, id, GROUP);
@@ -518,6 +524,7 @@ static HWND recorderRow(const wchar_t* label, const wchar_t* tip, const wchar_t*
 }
 
 static void refreshEnabled() {
+    EnableWindow(_ctl[C_AUTO_PREFER], toggleOn(_ctl[C_AUTO]));
     EnableWindow(_ctl[C_AUTO_MODE], toggleOn(_ctl[C_AUTO]));
     EnableWindow(_ctl[C_PAUSE], toggleOn(_ctl[C_AUTO]));
     EnableWindow(_ctl[C_SITE], toggleOn(_ctl[C_SMART]));
@@ -557,7 +564,7 @@ static constexpr GroupLayout GENERAL_GROUPS[] = {
     {L"Việt ↔ Anh", 1}, {L"Kiểu gõ", 2}, {L"Kiểm tra", 2},
 };
 static constexpr GroupLayout ADVANCED_GROUPS[] = {
-    {L"Tự động chuyển", 3}, {L"Ghi nhớ chế độ gõ", 3},
+    {L"Tự động chuyển", 4}, {L"Ghi nhớ chế độ gõ", 3},
 };
 static constexpr GroupLayout SYSTEM_GROUPS[] = {
     {L"Hệ thống", 2}, {L"Âm thanh", 1},
@@ -619,6 +626,7 @@ static void buildMain() {
     } else if (_settingsPage == 1) {
         beginGroup(settingsGroup(1, 0).title);
         toggleRow(L"Tự sửa từ Anh/Việt", L"Tự nhận diện ngôn ngữ và sửa từ tương ứng.", C_AUTO, prefs::getInt(L"AutoSwitchByTyping", 1) != 0);
+        subToggleRow(L"Ưu tiên mode hiện tại", L"Ưu tiên cách hiểu theo mode đang bật khi từ hợp lệ ở cả hai ngôn ngữ. Ngữ cảnh đủ mạnh vẫn có thể chuyển mode.", C_AUTO_PREFER, prefs::getInt(L"PreferCurrentMode", 0) != 0);
         toggleRow(L"Tự động chuyển mode", L"Tự chuyển chế độ gõ theo ngôn ngữ vừa nhận diện. Tắt mục này vẫn sửa từ nhưng giữ nguyên mode hiện tại.", C_AUTO_MODE, prefs::getInt(L"AutoSwitchModeByTyping", 1) != 0);
         toggleRow(L"Tạm dừng 5 giây", L"Tạm dừng tự sửa trong 5 giây khi tự bấm chuyển Anh ↔ Việt.", C_PAUSE, prefs::getInt(L"PauseAutoAfterManual", 1) != 0);
         endGroup();
@@ -669,6 +677,7 @@ static LRESULT CALLBACK mainProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
         case C_HOTKEY: setHint(); break;
         case C_BEEP: { int hk = (currentHotkey() & ~0x8000) | (toggleOn(c) ? 0x8000 : 0); prefs::setInt(L"SwitchKeyStatus", hk); if (Recorder* r = rec(_ctl[C_HOTKEY])) r->value = hk; core::reloadSettings(); afterHotkeyChange(); break; }
         case C_AUTO: flag(L"AutoSwitchByTyping"); break;
+        case C_AUTO_PREFER: flag(L"PreferCurrentMode"); break;
         case C_AUTO_MODE: flag(L"AutoSwitchModeByTyping"); break;
         case C_PAUSE: flag(L"PauseAutoAfterManual"); break;
         case C_SMART: flag(L"UseSmartSwitchKey"); break;

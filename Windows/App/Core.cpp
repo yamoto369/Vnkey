@@ -18,7 +18,7 @@
 // Settings the engine reads (see Engine.h). Defaults for the Windows app.
 int vLanguage = 1, vSwitchKeyStatus = 0x7A000206, vCheckSpelling = 1, vUseModernOrthography = 1;
 int vRestoreIfWrongSpelling = 1, vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1;
-int vAutoSwitchByTyping = 1, vAutoSwitchModeByTyping = 1, vPerformLayoutCompat = 0;
+int vAutoSwitchByTyping = 1, vAutoSwitchModeByTyping = 1, vAutoSwitchPreferCurrentMode = 0, vPerformLayoutCompat = 0;
 
 namespace vikey { namespace core {
 
@@ -306,6 +306,7 @@ void reloadSettings() {
     vUseSmartSwitchKey = prefs::getInt(L"UseSmartSwitchKey", 1);
     vAutoSwitchByTyping = AutoSwitchPaused() ? 0 : prefs::getInt(L"AutoSwitchByTyping", 1);
     vAutoSwitchModeByTyping = prefs::getInt(L"AutoSwitchModeByTyping", 1);
+    vAutoSwitchPreferCurrentMode = prefs::getInt(L"PreferCurrentMode", 0);
     vTypingLogKeys = prefs::getInt(L"TypingLogKeys", 1);
     vTypingLogEnabled = prefs::getInt(L"TypingLogEnabled", 0);
     int hotkey = prefs::getInt(L"SwitchKeyStatus", 0);
