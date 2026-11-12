@@ -1,157 +1,208 @@
 #include "Prefs.h"
-#include <shlobj.h>
+#include <windows.h>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <cwchar>
+#include <cstdlib>
 
 namespace vikey { namespace prefs {
 
-static const wchar_t* ROOT = L"Software\\Vikey";
+static const wchar_t* RUN_KEY = L"Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+static const wchar_t* SECTION = L"Settings";
 
-static HKEY open(REGSAM access) {
-    HKEY h = nullptr;
-    if (RegCreateKeyExW(HKEY_CURRENT_USER, ROOT, 0, nullptr, REG_OPTION_NON_VOLATILE, access, nullptr, &h, nullptr) != ERROR_SUCCESS) return nullptr;
-    return h;
+static std::wstring dataDirectory() {
+    wchar_t exe[MAX_PATH] = {0};
+    DWORD n = GetModuleFileNameW(nullptr, exe, MAX_PATH);
+    if (!n || n >= MAX_PATH) return L"data";
+    wchar_t* slash = wcsrchr(exe, L'\\');
+    wchar_t* forward = wcsrchr(exe, L'/');
+    if (!slash || (forward && forward > slash)) slash = forward;
+    if (slash) *slash = L'\0';
+    return std::wstring(exe) + L"\\data";
+}
+
+static std::wstring settingsPath() {
+    return dataDirectory() + L"\\settings.ini";
+}
+
+static void ensureDataDirectory() {
+    const std::wstring dir = dataDirectory();
+    CreateDirectoryW(dir.c_str(), nullptr);
+}
+
+static std::wstring readRaw(const wchar_t* section, const wchar_t* key) {
+    wchar_t value[32768] = {0};
+    GetPrivateProfileStringW(section, key, L"", value, (DWORD)(sizeof(value) / sizeof(value[0])), settingsPath().c_str());
+    return value;
+}
+
+static void writeRaw(const wchar_t* section, const wchar_t* key, const std::wstring& value) {
+    ensureDataDirectory();
+    WritePrivateProfileStringW(section, key, value.c_str(), settingsPath().c_str());
+}
+
+static std::wstring escape(const std::wstring& value) {
+    std::wstring out;
+    for (wchar_t c : value) {
+        if (c == L'%') out += L"%25";
+        else if (c == L'\r') out += L"%0D";
+        else if (c == L'\n') out += L"%0A";
+        else if (c == L'|') out += L"%7C";
+        else out += c;
+    }
+    return out;
+}
+
+static std::wstring unescape(const std::wstring& value) {
+    std::wstring out;
+    for (size_t i = 0; i < value.size(); ++i) {
+        if (value[i] == L'%' && i + 2 < value.size()) {
+            const std::wstring code = value.substr(i, 3);
+            if (code == L"%25") { out += L'%'; i += 2; continue; }
+            if (code == L"%0D") { out += L'\r'; i += 2; continue; }
+            if (code == L"%0A") { out += L'\n'; i += 2; continue; }
+            if (code == L"%7C") { out += L'|'; i += 2; continue; }
+        }
+        out += value[i];
+    }
+    return out;
+}
+
+static void writeIntRaw(const wchar_t* key, int value) {
+    wchar_t number[32]; _snwprintf_s(number, _TRUNCATE, L"i:%d", value);
+    writeRaw(SECTION, key, number);
+}
+
+static void writeStringRaw(const wchar_t* key, const std::wstring& value) {
+    writeRaw(SECTION, key, L"s:" + escape(value));
+}
+
+static void writeBinaryRaw(const wchar_t* key, const BYTE* data, DWORD size) {
+    static const wchar_t hex[] = L"0123456789ABCDEF";
+    std::wstring value = L"b:";
+    value.reserve(2 + size * 2);
+    for (DWORD i = 0; i < size; ++i) {
+        value += hex[data[i] >> 4];
+        value += hex[data[i] & 0x0F];
+    }
+    writeRaw(SECTION, key, value);
+}
+
+static void writeStringListRaw(const wchar_t* key, const std::vector<std::wstring>& values) {
+    std::wstring value = L"l:";
+    for (size_t i = 0; i < values.size(); ++i) {
+        if (i) value += L'|';
+        value += escape(values[i]);
+    }
+    writeRaw(SECTION, key, value);
 }
 
 bool has(const wchar_t* key) {
-    HKEY h = open(KEY_READ); if (!h) return false;
-    DWORD type = 0, size = 0;
-    bool ok = RegQueryValueExW(h, key, nullptr, &type, nullptr, &size) == ERROR_SUCCESS;
-    RegCloseKey(h); return ok;
+    return !readRaw(SECTION, key).empty();
 }
 
 int getInt(const wchar_t* key, int fallback) {
-    HKEY h = open(KEY_READ); if (!h) return fallback;
-    DWORD v = 0, size = sizeof(v), type = 0;
-    int r = fallback;
-    if (RegQueryValueExW(h, key, nullptr, &type, (LPBYTE)&v, &size) == ERROR_SUCCESS && type == REG_DWORD) r = (int)v;
-    RegCloseKey(h); return r;
+    const std::wstring raw = readRaw(SECTION, key);
+    if (raw.empty()) return fallback;
+    const wchar_t* p = raw.c_str();
+    if (raw.size() >= 2 && raw[1] == L':') {
+        if (raw[0] != L'i') return fallback;
+        p += 2;
+    }
+    wchar_t* end = nullptr;
+    long value = wcstol(p, &end, 10);
+    return end != p ? (int)value : fallback;
 }
 
-void setInt(const wchar_t* key, int value) {
-    HKEY h = open(KEY_WRITE); if (!h) return;
-    DWORD v = (DWORD)value;
-    RegSetValueExW(h, key, 0, REG_DWORD, (const BYTE*)&v, sizeof(v));
-    RegCloseKey(h);
-}
+void setInt(const wchar_t* key, int value) { writeIntRaw(key, value); }
 
 std::vector<BYTE> getBinary(const wchar_t* key) {
     std::vector<BYTE> out;
-    HKEY h = open(KEY_READ); if (!h) return out;
-    DWORD size = 0, type = 0;
-    if (RegQueryValueExW(h, key, nullptr, &type, nullptr, &size) == ERROR_SUCCESS && size > 0) {
-        out.resize(size);
-        if (RegQueryValueExW(h, key, nullptr, &type, out.data(), &size) != ERROR_SUCCESS) out.clear();
+    const std::wstring raw = readRaw(SECTION, key);
+    if (raw.size() < 2 || raw[0] != L'b' || raw[1] != L':') return out;
+    const size_t count = (raw.size() - 2) / 2;
+    if ((raw.size() - 2) % 2) return out;
+    out.reserve(count);
+    for (size_t i = 0; i < count; ++i) {
+        wchar_t pair[3] = {raw[2 + i * 2], raw[3 + i * 2], 0};
+        wchar_t* end = nullptr;
+        unsigned long value = wcstoul(pair, &end, 16);
+        if (end != pair + 2) { out.clear(); return out; }
+        out.push_back((BYTE)value);
     }
-    RegCloseKey(h); return out;
+    return out;
 }
 
 void setBinary(const wchar_t* key, const BYTE* data, DWORD size) {
-    HKEY h = open(KEY_WRITE); if (!h) return;
-    RegSetValueExW(h, key, 0, REG_BINARY, data, size);
-    RegCloseKey(h);
+    if (!data && size) return;
+    writeBinaryRaw(key, data, size);
 }
 
 std::wstring getString(const wchar_t* key, const std::wstring& fallback) {
-    HKEY h = open(KEY_READ); if (!h) return fallback;
-    DWORD size = 0, type = 0;
-    std::wstring r = fallback;
-    // size first, like getBinary: a fixed 1024-character buffer gave ERROR_MORE_DATA (so the fallback) for long values
-    if (RegQueryValueExW(h, key, nullptr, &type, nullptr, &size) == ERROR_SUCCESS && type == REG_SZ) {
-        std::vector<wchar_t> buf(size / sizeof(wchar_t) + 1, 0);   // +1: a terminator even if the stored value has none
-        if (RegQueryValueExW(h, key, nullptr, &type, (LPBYTE)buf.data(), &size) == ERROR_SUCCESS && type == REG_SZ) r = buf.data();
-    }
-    RegCloseKey(h); return r;
+    const std::wstring raw = readRaw(SECTION, key);
+    if (raw.size() < 2 || raw[0] != L's' || raw[1] != L':') return fallback;
+    return unescape(raw.substr(2));
 }
 
-void setString(const wchar_t* key, const std::wstring& value) {
-    HKEY h = open(KEY_WRITE); if (!h) return;
-    RegSetValueExW(h, key, 0, REG_SZ, (const BYTE*)value.c_str(), (DWORD)((value.size() + 1) * sizeof(wchar_t)));
-    RegCloseKey(h);
-}
+void setString(const wchar_t* key, const std::wstring& value) { writeStringRaw(key, value); }
 
 std::vector<std::wstring> getStringList(const wchar_t* key) {
     std::vector<std::wstring> out;
-    HKEY h = open(KEY_READ); if (!h) return out;
-    DWORD size = 0, type = 0;
-    if (RegQueryValueExW(h, key, nullptr, &type, nullptr, &size) == ERROR_SUCCESS && type == REG_MULTI_SZ && size >= 2 * sizeof(wchar_t)) {
-        std::vector<wchar_t> buf(size / sizeof(wchar_t) + 2, 0);
-        if (RegQueryValueExW(h, key, nullptr, &type, (LPBYTE)buf.data(), &size) == ERROR_SUCCESS && type == REG_MULTI_SZ)
-            for (const wchar_t* item = buf.data(); *item; item += wcslen(item) + 1) out.emplace_back(item);
+    const std::wstring raw = readRaw(SECTION, key);
+    if (raw.size() < 2 || raw[0] != L'l' || raw[1] != L':') return out;
+    size_t start = 2;
+    while (start <= raw.size()) {
+        size_t end = raw.find(L'|', start);
+        if (end == std::wstring::npos) end = raw.size();
+        if (end > start) out.push_back(unescape(raw.substr(start, end - start)));
+        if (end == raw.size()) break;
+        start = end + 1;
     }
-    RegCloseKey(h); return out;
+    return out;
 }
 
 void setStringList(const wchar_t* key, const std::vector<std::wstring>& values) {
-    HKEY h = open(KEY_WRITE); if (!h) return;
-    std::vector<wchar_t> data;
-    for (const auto& value : values) if (!value.empty()) { data.insert(data.end(), value.begin(), value.end()); data.push_back(0); }
-    data.push_back(0); if (data.size() == 1) data.push_back(0);
-    RegSetValueExW(h, key, 0, REG_MULTI_SZ, (const BYTE*)data.data(), (DWORD)(data.size() * sizeof(wchar_t)));
-    RegCloseKey(h);
+    writeStringListRaw(key, values);
 }
 
 void remove(const wchar_t* key) {
-    HKEY h = open(KEY_WRITE); if (!h) return;
-    RegDeleteValueW(h, key); RegCloseKey(h);
+    WritePrivateProfileStringW(SECTION, key, nullptr, settingsPath().c_str());
 }
 
 std::wstring appDataDir() {
-    wchar_t path[MAX_PATH] = {0};
-    SHGetFolderPathW(nullptr, CSIDL_LOCAL_APPDATA, nullptr, 0, path);
-    std::wstring dir = std::wstring(path) + L"\\Vikey";
+    ensureDataDirectory();
+    return dataDirectory();
+}
+
+std::wstring logsDir() {
+    const std::wstring dir = appDataDir() + L"\\logs";
     CreateDirectoryW(dir.c_str(), nullptr);
     return dir;
 }
 
-static const wchar_t* RUN_KEY = L"Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-
 bool launchAtLogin() {
-    HKEY h; if (RegOpenKeyExW(HKEY_CURRENT_USER, RUN_KEY, 0, KEY_READ, &h) != ERROR_SUCCESS) return false;
-    DWORD size = 0; bool ok = RegQueryValueExW(h, L"Vikey", nullptr, nullptr, nullptr, &size) == ERROR_SUCCESS;
-    RegCloseKey(h); return ok;
+    HKEY h = nullptr;
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, RUN_KEY, 0, KEY_READ, &h) != ERROR_SUCCESS) return false;
+    DWORD size = 0;
+    const bool enabled = RegQueryValueExW(h, L"Vikey", nullptr, nullptr, nullptr, &size) == ERROR_SUCCESS;
+    RegCloseKey(h);
+    return enabled;
 }
 
 void setLaunchAtLogin(bool on) {
-    HKEY h; if (RegOpenKeyExW(HKEY_CURRENT_USER, RUN_KEY, 0, KEY_WRITE, &h) != ERROR_SUCCESS) return;
+    // Windows startup integration remains in the standard per-user Run registry key.
+    HKEY h = nullptr;
+    if (RegCreateKeyExW(HKEY_CURRENT_USER, RUN_KEY, 0, nullptr, 0, KEY_WRITE, nullptr, &h, nullptr) != ERROR_SUCCESS) return;
     if (on) {
-        wchar_t exe[MAX_PATH]; GetModuleFileNameW(nullptr, exe, MAX_PATH);
-        std::wstring cmd = L"\"" + std::wstring(exe) + L"\"";
-        RegSetValueExW(h, L"Vikey", 0, REG_SZ, (const BYTE*)cmd.c_str(), (DWORD)((cmd.size() + 1) * sizeof(wchar_t)));
-    } else RegDeleteValueW(h, L"Vikey");
-    RegCloseKey(h);
-}
-
-/// OpenKey's input type 2 / 3 were Simple Telex 1 / 2 (D56; VNI, 1, isn't in Vikey). Its own one-time step, so people
-/// who moved from OpenKey before Vikey had the setting get it too; a style already chosen in Vikey stays.
-static void telexStyleFromOpenKey() {
-    if (has(L"MigratedTelexStyle")) return;
-    if (has(L"TelexStyle")) { setInt(L"MigratedTelexStyle", 1); return; }
-    // done only once OpenKey's setting was read: if it can't be read now, the next start tries again
-    HKEY h; if (RegOpenKeyExW(HKEY_CURRENT_USER, L"SOFTWARE\\TuyenMai\\OpenKey", 0, KEY_READ, &h) != ERROR_SUCCESS) return;
-    DWORD v = 0, size = sizeof(v), type = 0;
-    if (RegQueryValueExW(h, L"vInputType", nullptr, &type, (LPBYTE)&v, &size) == ERROR_SUCCESS && type == REG_DWORD) {
-        if (v == 2 || v == 3) setInt(L"TelexStyle", (int)v - 1);
-        setInt(L"MigratedTelexStyle", 1);
-    }
-    RegCloseKey(h);
-}
-
-void migrateFromOpenKey() {
-    telexStyleFromOpenKey();
-    if (has(L"MigratedFromOpenKey")) return;
-    setInt(L"MigratedFromOpenKey", 1);
-    HKEY h; if (RegOpenKeyExW(HKEY_CURRENT_USER, L"SOFTWARE\\TuyenMai\\OpenKey", 0, KEY_READ, &h) != ERROR_SUCCESS) return;
-    struct { const wchar_t* from; const wchar_t* to; } map[] = {
-        {L"vLanguage", L"InputMethod"}, {L"vCheckSpelling", L"Spelling"}, {L"vRestoreIfWrongSpelling", L"RestoreIfInvalidWord"},
-        {L"vUseModernOrthography", L"ModernOrthography"}, {L"vUseSmartSwitchKey", L"UseSmartSwitchKey"}, {L"vSwitchKeyStatus", L"SwitchKeyStatus"},
-    };
-    for (auto& m : map) {
-        DWORD v = 0, size = sizeof(v), type = 0;
-        if (RegQueryValueExW(h, m.from, nullptr, &type, (LPBYTE)&v, &size) == ERROR_SUCCESS && type == REG_DWORD && !has(m.to)) setInt(m.to, (int)v);
-    }
-    DWORD size = 0, type = 0;
-    if (RegQueryValueExW(h, L"smartSwitchKey", nullptr, &type, nullptr, &size) == ERROR_SUCCESS && size > 0 && !has(L"smartSwitchKey")) {
-        std::vector<BYTE> d(size);
-        if (RegQueryValueExW(h, L"smartSwitchKey", nullptr, &type, d.data(), &size) == ERROR_SUCCESS) setBinary(L"smartSwitchKey", d.data(), size);
+        wchar_t exe[MAX_PATH] = {0};
+        DWORD n = GetModuleFileNameW(nullptr, exe, MAX_PATH);
+        if (n > 0 && n < MAX_PATH) {
+            std::wstring cmd = L"\"" + std::wstring(exe) + L"\"";
+            RegSetValueExW(h, L"Vikey", 0, REG_SZ, (const BYTE*)cmd.c_str(), (DWORD)((cmd.size() + 1) * sizeof(wchar_t)));
+        }
+    } else {
+        RegDeleteValueW(h, L"Vikey");
     }
     RegCloseKey(h);
 }

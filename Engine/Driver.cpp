@@ -35,7 +35,7 @@ void VikeyDriver::rememberFix(int corrected, Uint16 key, bool shift) {
         if ((vAutoSwitchUndoData[x] & 0xFFFF) == KEY_SPACE && !(vAutoSwitchUndoData[x] & CHAR_CODE_MASK)) return;
     undoText.clear();
     for (int x = 0; x < vAutoSwitchUndoCount; x++) undoText.push_back(charOf(vAutoSwitchUndoData[x]));
-    //like the Mac: Backspace takes the break key too, the cursor ends up at the end of the original word
+    // Include the break key in the undo sequence so the cursor ends at the original word boundary.
     undoKeyCount = 0;
     for (int x = 0; x < vAutoSwitchUndoCount && x < MAX_BUFF; x++) {
         if (vAutoSwitchUndoData[x] & CHAR_CODE_MASK) { undoKeyCount = 0; break; }

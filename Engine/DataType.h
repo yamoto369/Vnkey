@@ -13,8 +13,7 @@
 
 using namespace std;
 
-//#define V_PLATFORM_MAC              1
-//#define V_PLATFORM_WINDOWS          2
+// Native platform keys are translated to the engine's stable key identifiers by the Windows adapter.
 
 #define MAX_BUFF 32
 
@@ -72,7 +71,7 @@ struct vKeyHookState {
     
 };
 
-#include "platforms/mac.h"
+#include "platforms/keycodes.h"
 
 //internal engine data
 #define CAPS_MASK                               0x10000

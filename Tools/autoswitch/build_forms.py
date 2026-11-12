@@ -4,7 +4,7 @@ such as "resets" and "quests" (D60). Source: the SCOWL en_US Hunspell dictionary
 rules (plurals, past tense, -ing, irregular forms). The engine counts them as English rarer than every listed word.
 
 usage: build_forms.py DIR   (DIR has en_US.dic and en_US.aff from hunspell-en_US-<date>.zip, github.com/en-wl/wordlist
-                             releases; needs Hunspell's unmunch: brew install hunspell)
+                             releases; requires Hunspell's unmunch.exe on PATH (Windows).
   FORMS=listed (default): only forms of a dictionary entry whose base word is in our list; FORMS=all: every form.
 SCOWL/ESDB copyright Kevin Atkinson, permissive license (see ACKNOWLEDGEMENTS.md)."""
 import os, re, subprocess, sys, tempfile

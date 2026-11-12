@@ -10,7 +10,7 @@
 #include <vector>
 
 int vLanguage = 1, vSwitchKeyStatus = 0, vCheckSpelling = 1, vUseModernOrthography = 1, vRestoreIfWrongSpelling = 1,
-    vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1, vAutoSwitchByTyping = 1;
+    vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1, vAutoSwitchByTyping = 1, vAutoSwitchPreferCurrentMode = 0;
 void* vTestSaveState();
 void vTestRestoreState(void*);
 void vTestFreeState(void*);

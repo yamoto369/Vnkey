@@ -10,7 +10,7 @@ PAGES_EN = os.path.join(ROOT, "pages_en")   # English (D31), same file names
 DIST = os.path.join(ROOT, "dist")
 YEAR = datetime.date.today().year
 SITE = "https://vikey.app"
-GITHUB = "https://github.com/tonyminibot/Vikey"
+GITHUB = "https://github.com/yamoto369/Vnkey"
 
 T = {   # layout text per language (D31: Vietnamese at /, English at /en/)
     "vi": dict(features="Chức năng", faq="Câu hỏi", changelog="Phiên bản", download="Tải về", home="Trang chủ", support="Hỗ trợ",
@@ -57,7 +57,7 @@ HEAD = """<!doctype html><html lang="{lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{description}">
-<link rel="icon" href="/assets/icon.png"><link rel="apple-touch-icon" href="/assets/icon.png">
+<link rel="icon" href="/assets/icon.png">
 <meta property="og:site_name" content="Vikey - Gõ tiếng Việt"><meta name="application-name" content="Vikey - Gõ tiếng Việt"><meta property="og:title" content="{title}"><meta property="og:description" content="{description}">
 <meta property="og:image" content="{site}/assets/og.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:type" content="website"><meta property="og:url" content="{site}{path}">
 <meta name="twitter:card" content="summary_large_image"><meta name="twitter:image" content="{site}/assets/og.png">
@@ -70,61 +70,40 @@ def release():
     p = os.path.join(ROOT, "release.json")
     return json.load(open(p)) if os.path.exists(p) else {}
 
-PLATFORMS = ("macos", "windows", "linux", "ios", "android")
-PNAME = dict(macos="macOS", windows="Windows", linux="Linux", ios="iOS", android="Android")
-PREQ = {"vi": dict(macos="macOS 13 trở lên", windows="Windows 10 và 11", linux="Ubuntu, Debian, Fedora, Arch", ios="iPhone, iOS 17+", android="Điện thoại Android"),
-        "en": dict(macos="macOS 13 or later", windows="Windows 10 and 11", linux="Ubuntu, Debian, Fedora, Arch", ios="iPhone, iOS 17+", android="Android phones")}
-PTXT = {"vi": dict(dl="Tải về", store="App Store", soon="Sắp có", notify="Báo tôi khi có", arm="Bản cho chip ARM", play="Google Play"),
-        "en": dict(dl="Download", store="App Store", soon="Soon", notify="Notify me", arm="ARM64 build", play="Google Play")}
+PTXT = {"vi": dict(dl="Tải bản Windows", arm="Bản ARM64", soon="Chưa có bản tải"),
+        "en": dict(dl="Download for Windows", arm="ARM64 build", soon="Not available")}
 
 def downloads(rel):
-    """Where each platform's download lives, from release.json; None = no build yet ("pending" + notify form).
-    Release lanes add their platform to release.json: windows {x64, arm64}, linux {deb_x64, rpm_x64, pacman_x64, deb_arm64, rpm_arm64, pacman_arm64}, ios {app_store_url},
-    android {download_url}. The Mac lane owns the top-level keys."""
-    win, lin, ios, andr = (rel.get(k) or {} for k in ("windows", "linux", "ios", "android"))
-    d = dict(macos={"url": rel["download_url"]} if rel.get("download_url") else None,
-             windows={"url": win["x64"]["download_url"], "arm": (win.get("arm64") or {}).get("download_url")} if (win.get("x64") or {}).get("download_url") else None,
-             linux={"url": lin["deb_x64"]["download_url"], "rpm": (lin.get("rpm_x64") or {}).get("download_url"),
-                    "pacman": (lin.get("pacman_x64") or {}).get("download_url"),
-                    "deb_arm": (lin.get("deb_arm64") or {}).get("download_url"), "rpm_arm": (lin.get("rpm_arm64") or {}).get("download_url"),
-                    "pacman_arm": (lin.get("pacman_arm64") or {}).get("download_url")}
-                   if (lin.get("deb_x64") or {}).get("download_url") else None,
-             ios={"url": ios["app_store_url"]} if ios.get("app_store_url") else None,
-             android={"url": andr["download_url"]} if andr.get("download_url") else None)
-    return d
+    """Windows release assets only; None means no Windows build has been published yet."""
+    win = rel.get("windows") or {}
+    x64, arm = win.get("x64") or {}, win.get("arm64") or {}
+    if not x64.get("download_url"): return {"windows": None}
+    return {"windows": {"url": x64["download_url"], "arm": arm.get("download_url"),
+                        "portable": x64.get("portable_url"), "portable_arm": arm.get("portable_url"),
+                        "sha256": x64.get("sha256"), "sha256_arm": arm.get("sha256"),
+                        "version": win.get("version") or rel.get("version")}}
 
 def os_icon(p, cls="ic"):
     return f'<svg class="{cls}" aria-hidden="true"><use href="/assets/os.svg#{p}"/></svg>'
 
-def platform_cards(lang, dl):
-    t = PTXT[lang]; out = []
-    for p in PLATFORMS:
-        d = dl[p]
-        if d:
-            store = p == "ios"
-            btn = f'<a class="btn dl" href="{d["url"]}"{"" if store else " download"}>{t["store"] if store else t["dl"]}</a>'
-            if p == "linux":   # the package format matters more than the button: .deb, .rpm and Arch side by side
-                btn = f'<div class="two three"><a class="btn dl" href="{d["url"]}" download>.deb</a>' + (f'<a class="btn dl" href="{d["rpm"]}" download>.rpm</a>' if d.get("rpm") else "") + (f'<a class="btn dl" href="{d["pacman"]}" download title="Arch Linux package">Arch</a>' if d.get("pacman") else "") + "</div>"
-                arms = [f'<a href="{d[k]}" download>{n}</a>' for k, n in (("deb_arm", ".deb"), ("rpm_arm", ".rpm"), ("pacman_arm", "Arch")) if d.get(k)]
-                if arms: btn += '<span class="alt">ARM64: ' + " · ".join(arms) + "</span>"
-            if p == "windows" and d.get("arm"): btn += f'<a class="alt" href="{d["arm"]}" download>{t["arm"]}</a>'
-            if p == "android": btn = f'<div class="two"><a class="btn dl" href="{d["url"]}" download>APK</a><a class="btn ghost soon" href="#android" data-notify="play" title="{t["notify"]}">{t["play"]}<small>{t["soon"]}</small></a></div>'
-            badge = ""
-            if p not in ("windows", "linux") or not (d.get("arm") or d.get("deb_arm")): btn += '<span class="alt none" aria-hidden="true">.</span>'
-        else:
-            btn = f'<a class="btn ghost dl" href="#{p}" data-notify="{p}">{t["notify"]}</a>'
-            badge = f'<span class="badge">{t["soon"]}</span>'
-            btn += '<span class="alt none" aria-hidden="true">.</span>'
-        shot = f'<img class="pshot zoom" src="/assets/shots/dl-{p}.webp" width="1200" height="900" alt="Vikey {"trên" if lang == "vi" else "on"} {PNAME[p]}" loading="lazy">'
-        out.append(f'<section class="pcard{"" if d else " pending"}" id="{p}" data-os="{p}">{shot}{badge}{os_icon(p, "picon")}'
-                   f'<h2>{PNAME[p]}</h2><p>{PREQ[lang][p]}</p>{btn}</section>')
-    return '<div class="pgrid">' + "".join(out) + "</div>"
+def windows_card(lang, dl):
+    t = PTXT[lang]; d = dl.get("windows")
+    shot = '<img class="pshot zoom" src="/assets/shots/dl-windows.webp" width="1200" height="900" alt="Vikey for Windows" loading="lazy">'
+    if d:
+        btn = f'<a class="btn dl" href="{d["url"]}" download>{t["dl"]} (x64)</a>'
+        if d.get("arm"): btn += f'<a class="alt" href="{d["arm"]}" download>{t["arm"]}</a>'
+        links = []
+        if d.get("portable"): links.append(f'<a href="{d["portable"]}" download>x64 (zip)</a>')
+        if d.get("portable_arm"): links.append(f'<a href="{d["portable_arm"]}" download>ARM64 (zip)</a>')
+        if links: btn += '<span class="alt">' + " · ".join(links) + "</span>"
+        badge = ""
+    else:
+        btn = f'<a class="btn ghost dl" href="#windows">{t["soon"]}</a>'
+        badge = f'<span class="badge">{t["soon"]}</span>'
+    return f'<div class="pgrid"><section class="pcard{" pending" if not d else ""}" id="windows" data-os="windows">{shot}{badge}{os_icon("windows", "picon")}<h2>Windows</h2><p>Windows 10 and 11 · x64 and ARM64</p>{btn}</section></div>'
 
-def platform_row(lang, pre, dl):   # the small "available on" icon row on the home page
-    t = PTXT[lang]
-    return '<div class="plats">' + "".join(
-        f'<a href="{pre}/download#{p}" title="{PNAME[p]}{"" if dl[p] else " · " + t["soon"]}"{"" if dl[p] else " class=pending"}>{os_icon(p)}<span>{PNAME[p]}</span></a>'
-        for p in PLATFORMS) + "</div>"
+def windows_row(lang, pre, dl):
+    return f'<div class="plats"><a href="{pre}/download#windows" title="Windows">{os_icon("windows")}<span>Windows</span></a></div>'
 
 def build():
     rel = release()
@@ -134,7 +113,6 @@ def build():
         shutil.copytree(os.path.join(ROOT, "downloads"), os.path.join(DIST, "downloads"))
     shutil.copy(os.path.join(ROOT, "style.css"), DIST)
     if rel: shutil.copy(os.path.join(ROOT, "release.json"), DIST)
-    if os.path.exists(os.path.join(ROOT, "appcast.xml")): shutil.copy(os.path.join(ROOT, "appcast.xml"), DIST)   # Sparkle feed
     ver = str(int(os.path.getmtime(os.path.join(ROOT, "style.css"))))
     for lang, srcdir, pre in (("vi", PAGES, ""), ("en", PAGES_EN, "/en")):
       for name in sorted(os.listdir(srcdir)):
@@ -153,20 +131,15 @@ def build():
         page = HEAD.format(lang=lang, title=meta.get("title", "Vikey"), description=meta.get("description", ""), site=SITE, path=path, ver=ver,
                            canonical=canonical, alternates=alternates, bodyclass=' class="one-page"' if one else "")
         dl = downloads(rel)
-        body = body.replace("<!-- PLATFORMS -->", platform_cards(lang, dl)).replace("<!-- PLATFORM_ROW -->", platform_row(lang, pre, dl))
-        script = f'<script>window.VK_DL={json.dumps(dl, separators=(",", ":"))}</script><script src="/assets/platforms.js" defer></script>'
+        body = body.replace("<!-- WINDOWS_CARD -->", windows_card(lang, dl)).replace("<!-- WINDOWS_ROW -->", windows_row(lang, pre, dl))
+        script = f'<script>window.VK_DL={json.dumps(dl, separators=(",", ":"))}</script><script src="/assets/windows.js" defer></script>'
         page += nav(lang, pre, other) + body + ("" if one else footer(lang, pre)) + script + "</body></html>\n"
         win = rel.get("windows") or {}
-        lin = rel.get("linux") or {}
-        subst = {"VERSION": rel.get("version"), "LIN_VERSION": lin.get("version"),
-                 "LIN_DEB_X64": (lin.get("deb_x64") or {}).get("download_url"), "LIN_DEB_ARM64": (lin.get("deb_arm64") or {}).get("download_url"),
-                 "LIN_RPM_X64": (lin.get("rpm_x64") or {}).get("download_url"), "LIN_RPM_ARM64": (lin.get("rpm_arm64") or {}).get("download_url"), "DOWNLOAD_URL": rel.get("download_url"), "SHA256": rel.get("sha256"),
-                 "WIN_VERSION": win.get("version"), "WIN_X64_URL": (win.get("x64") or {}).get("download_url"), "WIN_ARM64_URL": (win.get("arm64") or {}).get("download_url"),
+        subst = {"VERSION": rel.get("version"), "WIN_VERSION": win.get("version"),
+                 "WIN_X64_URL": (win.get("x64") or {}).get("download_url"), "WIN_ARM64_URL": (win.get("arm64") or {}).get("download_url"),
                  "WIN_X64_ZIP": (win.get("x64") or {}).get("portable_url"), "WIN_ARM64_ZIP": (win.get("arm64") or {}).get("portable_url"),
                  "WIN_X64_SHA": (win.get("x64") or {}).get("sha256"), "WIN_ARM64_SHA": (win.get("arm64") or {}).get("sha256")}
-        # a page that mentions the Windows build before it is released keeps its placeholders hidden
         if not win: page = re.sub(r'<!-- windows -->.*?<!-- /windows -->', "", page, flags=re.S)
-        if not lin: page = re.sub(r'<!-- linux -->.*?<!-- /linux -->', "", page, flags=re.S)
         for k in sorted(subst, key=len, reverse=True):   # WIN_VERSION before VERSION
             if subst[k]: page = page.replace(k, subst[k])
         # cache-bust assets: /assets/x.png -> /assets/x.png?v=<mtime>, so browsers never show a stale screenshot

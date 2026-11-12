@@ -4,6 +4,7 @@
 #include <string>
 #include <windowsx.h>
 #include <algorithm>
+#include <cstring>
 #include <objidl.h>
 #define GDIPVER 0x0110
 #include <gdiplus.h>
@@ -35,45 +36,11 @@ static UINT _iconDpi = 0;
 static int _iconSize = 0;
 static bool _trayAdded = false;
 
-/// Render a crisp, DPI-sized tray tile. V uses the app's indigo gradient; E is black.
-static HICON makeIcon(wchar_t letter, int size) {
+/// Load the supplied multi-resolution ICO resource at the tray's current DPI.
+static HICON makeIcon(int resourceId, int size) {
     if (size <= 0) return nullptr;
-    Bitmap bitmap(size, size, PixelFormat32bppARGB);
-    Graphics g(&bitmap);
-    g.SetSmoothingMode(SmoothingModeAntiAlias);
-    g.SetPixelOffsetMode(PixelOffsetModeHighQuality);
-    g.SetTextRenderingHint(TextRenderingHintAntiAliasGridFit);
-    g.Clear(Color(0, 0, 0, 0));
-    float inset = std::max(0.5f, size * 0.055f);
-    RectF tile(inset, inset, size - inset * 2.0f, size - inset * 2.0f);
-    GraphicsPath path;
-    float d = std::min(tile.Width, tile.Height) * 0.46f;
-    path.AddArc(tile.X, tile.Y, d, d, 180, 90);
-    path.AddArc(tile.X + tile.Width - d, tile.Y, d, d, 270, 90);
-    path.AddArc(tile.X + tile.Width - d, tile.Y + tile.Height - d, d, d, 0, 90);
-    path.AddArc(tile.X, tile.Y + tile.Height - d, d, d, 90, 90);
-    path.CloseFigure();
-    SolidBrush tileFill(Color(255, 248, 249, 253));
-    Pen tileBorder(Color(255, 205, 211, 230), std::max(0.7f, size * 0.045f));
-    g.FillPath(&tileFill, &path);
-    g.DrawPath(&tileBorder, &path);
-    FontFamily family(L"Segoe UI");
-    Font font(&family, std::max(1.0f, size * 0.69f), FontStyleBold, UnitPixel);
-    StringFormat format;
-    format.SetAlignment(StringAlignmentCenter);
-    format.SetLineAlignment(StringAlignmentCenter);
-    RectF textRect(0.0f, -size * 0.015f, (float)size, (float)size);
-    if (letter == L'V') {
-        LinearGradientBrush glyph(RectF(0, 0, (float)size, (float)size),
-            Color(255, 83, 80, 205), Color(255, 55, 69, 184), LinearGradientModeVertical);
-        g.DrawString(L"V", 1, &font, textRect, &format, &glyph);
-    } else {
-        SolidBrush glyph(Color(255, 0, 0, 0));
-        g.DrawString(L"E", 1, &font, textRect, &format, &glyph);
-    }
-    HICON icon = nullptr;
-    if (bitmap.GetHICON(&icon) != Ok) return nullptr;
-    return icon;
+    return (HICON)LoadImageW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(resourceId),
+        IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
 }
 static UINT trayDpi() {
     HMODULE user32 = GetModuleHandleW(L"user32.dll");
@@ -103,8 +70,8 @@ static bool refreshTrayIcons(bool force = false) {
     const UINT dpi = trayDpi();
     const int size = trayIconSize(dpi);
     if (!force && _iconV && _iconE && dpi == _iconDpi && size == _iconSize) return true;
-    HICON nextV = makeIcon(L'V', size);
-    HICON nextE = makeIcon(L'E', size);
+    HICON nextV = makeIcon(IDR_TRAY_V, size);
+    HICON nextE = makeIcon(IDR_TRAY_E, size);
     if (!nextV || !nextE) {
         if (nextV) DestroyIcon(nextV);
         if (nextE) DestroyIcon(nextE);
@@ -219,7 +186,6 @@ int WINAPI wWinMain(HINSTANCE inst, HINSTANCE, PWSTR, int) {
         MessageBoxW(nullptr, L"Không khởi tạo được bộ vẽ icon.", L"Vikey", MB_ICONERROR);
         return 1;
     }
-    vikey::prefs::migrateFromOpenKey();
     // Remove obsolete network-feature state from older installations.
     std::wstring oldUpdate = vikey::prefs::getString(L"PendingUpdatePath", L"");
     if (!oldUpdate.empty()) DeleteFileW(oldUpdate.c_str());

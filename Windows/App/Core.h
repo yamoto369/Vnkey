@@ -15,7 +15,7 @@ bool isRunning();
 int language();                     // 0 English, 1 Vietnamese
 void setLanguageByUser(int lang);   // from the tray menu / settings window
 void setLanguageQuiet(int lang);    // tests: set the language without the 5 s pause or a log entry
-void reloadSettings();              // after a setting changed in the registry
+void reloadSettings();              // after a setting changed in settings.ini
 void onForegroundChanged();         // called by the foreground WinEvent hook
 void onSiteChanged(const std::wstring& host);   // per-site memory (Phase 3)
 std::wstring frontAppName();

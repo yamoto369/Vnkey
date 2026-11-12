@@ -118,8 +118,8 @@ en_rows, en_total = load('en_50k.txt')
 # Acronyms typed lowercase that are Vietnamese words in Telex: 'os' is ó (Tony: D48). 0 = Vietnamese wins in a
 # Vietnamese sentence, English wins in an English one.
 EN_OVERRIDE = {'os': 0, 'docs': 20}   # docs: D58
-# Keep only words the macOS English spell checker accepts (drops subtitle junk like "ys", "af", "carm").
-# en_spell_ok.txt is produced by spellfilter.swift; see README.md.
+# Keep only entries in the checked-in English word allowlist (drops subtitle junk such as "ys", "af", "carm").
+# en_spell_ok.txt is reviewed data used by the generator; it is not platform-generated.
 spell_ok = set(open(os.path.join(HERE, 'en_spell_ok.txt')).read().split())
 en = {}
 for w, c in en_rows:

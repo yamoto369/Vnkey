@@ -99,6 +99,9 @@ extern int vOtherLanguage;
  */
 extern int vAutoSwitchByTyping;
 
+/** Prefer the current input mode for words valid in both English and Vietnamese. */
+extern int vAutoSwitchPreferCurrentMode;
+
 /**
  * Set by the engine when a keystroke should switch the language:
  * -1: no request, 0: switch to English, 1: switch to Vietnamese.

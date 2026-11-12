@@ -1,7 +1,7 @@
 // POST /api/crash, multipart: platform, version, os, report (one file, the crash report the user agreed to send)
 // -> R2 vikey-feedback under crash/<platform>/<id>-<name>, one row in D1 (vikey-notify.crashes).
 // Sent by the desktop apps on the launch after a crash, only after the user says yes. No typed text is in a report.
-const PLATFORMS = ["macos", "windows", "linux"];
+const PLATFORMS = ["windows"];
 const MAX = 2 * 1024 * 1024;
 const OK_EXT = /\.(ips|crash|txt|log|dmp|json)$/i;
 const json = (body, status = 200) => new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });

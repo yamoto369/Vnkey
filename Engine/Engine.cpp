@@ -27,8 +27,8 @@ static vector<Uint8> _charKeyCode = {
 static vector<Uint8> _breakCode = {
     KEY_ESC, KEY_TAB, KEY_ENTER, KEY_RETURN, KEY_LEFT, KEY_RIGHT, KEY_DOWN, KEY_UP, KEY_COMMA, KEY_DOT,
     KEY_SLASH, KEY_SEMICOLON, KEY_QUOTE, KEY_BACK_SLASH, KEY_MINUS, KEY_EQUALS, KEY_BACKQUOTE, KEY_TAB
-    // The engine always uses the macOS key codes (platforms/mac.h); every platform layer maps its own
-    // codes to these (Windows: VK_* -> KEY_*, with Insert/Home/End/Delete/PgUp/PgDn sent as KEY_ESC).
+    // The engine uses stable logical key identifiers from platforms/keycodes.h. The Windows adapter
+    // maps native virtual keys to them (Insert/Home/End/Delete/PgUp/PgDn use KEY_ESC as a break key).
 };
 
 
@@ -1281,6 +1281,9 @@ void vSetCheckSpelling() {
 #ifndef AS_PREFER
 #define AS_PREFER 10
 #endif
+#ifndef AS_CURRENT_MODE_BIAS
+#define AS_CURRENT_MODE_BIAS 5   //about 3.2x stronger evidence required to leave the current mode
+#endif
 #ifndef AS_VN_FLOOR
 #define AS_VN_FLOOR 10      //Vietnamese words used at least ~10 per million are never switched away from
 #endif
@@ -1326,7 +1329,7 @@ void vAutoSwitchForget() {
     navForget();   //and the word kept for a ← → round trip (D51): after a switch or a click → would bring it back elsewhere
     _asPrevCount = 0;
     _asWordStartOk = true;   //a fresh context (language switched, app changed): the next word stands on its own
-    _afterDigit = false;     //not after a digit either: the one before the switch may be far back ("1" ⌥Z "abc " ⌥Z "wa" gave "wa", D33)
+    _afterDigit = false;     //not after a digit either: the one before the switch may be far back ("1" [switch] "abc " [switch] "wa" gave "wa", D33)
     _spaceCount = 0; _specialChar.clear(); _typingStates.clear();   //and Backspace can't reopen a word from before it
     if (_asConvertedN > 0) {   //except the word auto switch just turned Vietnamese: it is on screen before the break key,
         //so Backspace over that key reopens it like a word typed in Vietnamese ("treen " ⌫ + s -> "trến")
@@ -1819,13 +1822,14 @@ static bool asShouldRestoreToEnglishCore(bool& literalOnly) {
             if (_asPrevCount >= 2 && asRawWord(_asPrev[1].raw, _asPrev[1].rawCount, p2raw))
                 vote = asTrigramVote(p2raw, !_asPrev[1].same, praw, !_asPrev[0].same, raw);
             if (vote == 0) vote = asBigramVote(praw, !_asPrev[0].same, raw);
-            if (vote != 0) return en - vn - vote >= AS_PREFER && (vn < AS_VN_FLOOR || vote <= -AS_PREFER);
+            if (vote != 0) return en - vn - vote >= AS_PREFER + ((vAutoSwitchPreferCurrentMode && vLanguage == 1 && en != AS_MISSING && vn != AS_MISSING) ? AS_CURRENT_MODE_BIAS : 0) && (vn < AS_VN_FLOOR || vote <= -AS_PREFER);
         }
     }
-    if (en != AS_MISSING && vn != AS_MISSING && en - vn >= AS_TIE_PREV && _asPrevCount >= 1 &&
+    if (en != AS_MISSING && vn != AS_MISSING && en - vn >= AS_TIE_PREV + (vAutoSwitchPreferCurrentMode ? AS_CURRENT_MODE_BIAS : 0) && _asPrevCount >= 1 &&
         _asPrev[0].same && _asPrev[0].en != AS_MISSING && _asPrev[0].vn == AS_MISSING)
         return true;   //"video call thí" -> "this"
-    return vn == AS_MISSING || (vn < AS_VN_FLOOR && en - vn >= AS_PREFER) || en - vn >= AS_VN_EXTREME;
+    const int currentModeBias = (vAutoSwitchPreferCurrentMode && vLanguage == 1 && en != AS_MISSING && vn != AS_MISSING) ? AS_CURRENT_MODE_BIAS : 0;
+    return vn == AS_MISSING || (vn < AS_VN_FLOOR && en - vn >= AS_PREFER + currentModeBias) || en - vn >= AS_VN_EXTREME + currentModeBias;
 }
 
 /** Whether to put the word back to the keys typed. A foreign word restored as typed gets back the keys
@@ -2046,7 +2050,8 @@ bool vAutoSwitchCheckEnglishWord(const Uint32* keys, const int& count,
         capVote = asCapVote(raw);
         if (capVote <= -AS_CAP_MARGIN) return false;
     }
-    if (vn == AS_MISSING || !(en == AS_MISSING || capVote >= AS_CAP_MARGIN || (en < AS_EN_FLOOR && vn - en + pairVote >= AS_PREFER))) return false;
+    const int currentModeBias = (vAutoSwitchPreferCurrentMode && vLanguage == 0 && en != AS_MISSING && vn != AS_MISSING) ? AS_CURRENT_MODE_BIAS : 0;
+    if (vn == AS_MISSING || !(en == AS_MISSING || capVote >= AS_CAP_MARGIN || (en < AS_EN_FLOOR && vn - en + pairVote >= AS_PREFER + currentModeBias))) return false;
 #ifndef AS_CAPS_VN_FLOOR
 #define AS_CAPS_VN_FLOOR 15   //all capitals convert only to a common syllable (IRS stays, not "Í"): D23, D27
 #endif

@@ -15,10 +15,10 @@
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "winmm.lib")
 
-// Settings the engine reads (see Engine.h). Same defaults as the macOS app.
+// Settings the engine reads (see Engine.h). Defaults for the Windows app.
 int vLanguage = 1, vSwitchKeyStatus = 0x7A000206, vCheckSpelling = 1, vUseModernOrthography = 1;
 int vRestoreIfWrongSpelling = 1, vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1;
-int vAutoSwitchByTyping = 1, vAutoSwitchModeByTyping = 1, vPerformLayoutCompat = 0;
+int vAutoSwitchByTyping = 1, vAutoSwitchModeByTyping = 1, vAutoSwitchPreferCurrentMode = 0, vPerformLayoutCompat = 0;
 
 namespace vikey { namespace core {
 
@@ -40,7 +40,7 @@ static void PlaySwitchSound(int language) {
 static const ULONG_PTR VIKEY_EVENT_TAG = 0x0F341991;
 static const int EMPTY_HOTKEY = 0xFE0000FE;
 
-// modifier flags, mirroring CGEventFlags usage on macOS
+// modifier flags, used by the Windows keyboard hook
 enum : unsigned { F_SHIFT = 1, F_CONTROL = 2, F_ALT = 4, F_WIN = 8, F_CAPS = 16 };
 #define OTHER_CONTROL_KEY ((_flag & F_CONTROL) || (_flag & F_ALT) || (_flag & F_WIN))
 
@@ -104,7 +104,7 @@ static std::string utf8(const std::wstring& w) {
 static std::string jsonEscape(const std::string& s) {
     std::string o; for (unsigned char c : s) { if (c == '"' || c == '\\') { o += '\\'; o += c; } else if (c < 0x20) { char b[8]; snprintf(b, sizeof b, "\\u%04x", c); o += b; } else o += c; } return o;
 }
-std::wstring typingLogPath() { return prefs::appDataDir() + L"\\typing-log.jsonl"; }
+std::wstring typingLogPath() { return prefs::logsDir() + L"\\typing-log.jsonl"; }
 static std::string TLTime() {
     SYSTEMTIME st; GetLocalTime(&st); TIME_ZONE_INFORMATION tz; DWORD r = GetTimeZoneInformation(&tz);
     long bias = -(tz.Bias + (r == TIME_ZONE_ID_DAYLIGHT ? tz.DaylightBias : tz.StandardBias));
@@ -306,6 +306,7 @@ void reloadSettings() {
     vUseSmartSwitchKey = prefs::getInt(L"UseSmartSwitchKey", 1);
     vAutoSwitchByTyping = AutoSwitchPaused() ? 0 : prefs::getInt(L"AutoSwitchByTyping", 1);
     vAutoSwitchModeByTyping = prefs::getInt(L"AutoSwitchModeByTyping", 1);
+    vAutoSwitchPreferCurrentMode = prefs::getInt(L"PreferCurrentMode", 0);
     vTypingLogKeys = prefs::getInt(L"TypingLogKeys", 1);
     vTypingLogEnabled = prefs::getInt(L"TypingLogEnabled", 0);
     int hotkey = prefs::getInt(L"SwitchKeyStatus", 0);

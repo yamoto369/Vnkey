@@ -1,10 +1,10 @@
 #!/bin/zsh
 # Builds site/dist and deploys it to Cloudflare Pages (project "vikey", domain vikey.app), with site/functions
-# (the /api/notify form -> D1 "vikey-notify", see site/wrangler.toml). BRANCH=preview deploys a preview instead.
+# (Windows feedback and user-approved crash reports -> D1/R2, see site/wrangler.toml). BRANCH=preview deploys a preview instead.
 set -e
 cd "$(dirname "$0")/../.."
 # site/downloads is not in git: fetch any file release.json points to that this checkout lacks, so a deploy
-# from any worktree never drops another platform's download
+# from any worktree never drops the Windows downloads
 python3 - <<'PY' | while read -r tag f; do gh release download "$tag" -R tonyminibot/Vikey -p "$f" -D site/downloads --clobber; done
 import json, os, re
 def urls(o):

@@ -14,7 +14,7 @@
 #include <vector>
 #include <chrono>
 int vLanguage = 1, vSwitchKeyStatus = 0, vCheckSpelling = 1, vUseModernOrthography = 1, vRestoreIfWrongSpelling = 1,
-    vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1, vAutoSwitchByTyping = 1;
+    vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1, vAutoSwitchByTyping = 1, vAutoSwitchPreferCurrentMode = 0;
 
 int main(int argc, char** argv) {
     if (getenv("TOUCH_DELETE")) TouchModel::deleteCost = atof(getenv("TOUCH_DELETE"));
