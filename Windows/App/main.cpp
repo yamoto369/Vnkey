@@ -36,41 +36,11 @@ static UINT _iconDpi = 0;
 static int _iconSize = 0;
 static bool _trayAdded = false;
 
-/// Load a transparent PNG resource and scale it to the current tray DPI.
+/// Load the supplied multi-resolution ICO resource at the tray's current DPI.
 static HICON makeIcon(int resourceId, int size) {
     if (size <= 0) return nullptr;
-    HRSRC resource = FindResourceW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(resourceId), RT_RCDATA);
-    HGLOBAL loaded = resource ? LoadResource(GetModuleHandleW(nullptr), resource) : nullptr;
-    DWORD imageSize = resource ? SizeofResource(GetModuleHandleW(nullptr), resource) : 0;
-    const void* imageData = loaded ? LockResource(loaded) : nullptr;
-    if (!imageData || !imageSize) return nullptr;
-    HGLOBAL memory = GlobalAlloc(GMEM_MOVEABLE, imageSize);
-    if (!memory) return nullptr;
-    void* target = GlobalLock(memory);
-    if (!target) { GlobalFree(memory); return nullptr; }
-    memcpy(target, imageData, imageSize);
-    GlobalUnlock(memory);
-    IStream* stream = nullptr;
-    if (CreateStreamOnHGlobal(memory, TRUE, &stream) != S_OK) { GlobalFree(memory); return nullptr; }
-    HICON icon = nullptr;
-    {
-        Bitmap source(stream);
-        if (source.GetLastStatus() == Ok) {
-            Bitmap bitmap(size, size, PixelFormat32bppARGB);
-            Graphics g(&bitmap);
-            g.SetCompositingMode(CompositingModeSourceCopy);
-            g.SetCompositingQuality(CompositingQualityHighQuality);
-            g.SetInterpolationMode(InterpolationModeHighQualityBicubic);
-            g.SetPixelOffsetMode(PixelOffsetModeHighQuality);
-            g.Clear(Color(0, 0, 0, 0));
-            // Draw the supplied transparent PNG across the tray canvas; its artwork already includes safe margins.
-            g.DrawImage(&source, Rect(0, 0, size, size), 0, 0,
-                (INT)source.GetWidth(), (INT)source.GetHeight(), UnitPixel);
-            bitmap.GetHICON(&icon);
-        }
-    }
-    stream->Release();
-    return icon;
+    return (HICON)LoadImageW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(resourceId),
+        IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
 }
 static UINT trayDpi() {
     HMODULE user32 = GetModuleHandleW(L"user32.dll");
