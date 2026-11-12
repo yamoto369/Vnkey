@@ -1,6 +1,7 @@
 // Vikey for Windows: tray icon (V / E), menu, and the message loop the hooks need.
 #include <windows.h>
 #include <shellapi.h>
+#include <commctrl.h>
 #include <string>
 #include <windowsx.h>
 #include <algorithm>
@@ -19,6 +20,7 @@ using namespace Gdiplus;
 
 #pragma comment(lib, "user32.lib")
 #pragma comment(lib, "shell32.lib")
+#pragma comment(lib, "comctl32.lib")
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "advapi32.lib")
 
@@ -36,11 +38,12 @@ static UINT _iconDpi = 0;
 static int _iconSize = 0;
 static bool _trayAdded = false;
 
-/// Load the supplied multi-resolution ICO resource at the tray's current DPI.
-static HICON makeIcon(int resourceId, int size) {
-    if (size <= 0) return nullptr;
-    return (HICON)LoadImageW(GetModuleHandleW(nullptr), MAKEINTRESOURCEW(resourceId),
-        IMAGE_ICON, size, size, LR_DEFAULTCOLOR);
+/// Load the supplied multi-resolution ICO using the Windows small-icon metric.
+static HICON makeIcon(int resourceId) {
+    HICON icon = nullptr;
+    HRESULT hr = LoadIconMetric(GetModuleHandleW(nullptr),
+        MAKEINTRESOURCEW(resourceId), LIM_SMALL, &icon);
+    return SUCCEEDED(hr) ? icon : nullptr;
 }
 static UINT trayDpi() {
     HMODULE user32 = GetModuleHandleW(L"user32.dll");
@@ -72,8 +75,8 @@ static bool refreshTrayIcons(bool force = false) {
     const UINT dpi = trayDpi();
     const int size = trayIconSize(dpi);
     if (!force && _iconV && _iconE && dpi == _iconDpi && size == _iconSize) return true;
-    HICON nextV = makeIcon(IDR_TRAY_V, size);
-    HICON nextE = makeIcon(IDR_TRAY_E, size);
+    HICON nextV = makeIcon(IDR_TRAY_V);
+    HICON nextE = makeIcon(IDR_TRAY_E);
     if (!nextV || !nextE) {
         if (nextV) DestroyIcon(nextV);
         if (nextE) DestroyIcon(nextE);
