@@ -64,7 +64,9 @@ static int trayIconSize(UINT dpi) {
     typedef int (WINAPI *GetSystemMetricsForDpiFn)(int, UINT);
     auto getMetrics = (GetSystemMetricsForDpiFn)GetProcAddress(user32, "GetSystemMetricsForDpi");
     int size = getMetrics ? getMetrics(SM_CXSMICON, dpi) : GetSystemMetrics(SM_CXSMICON);
-    return size > 0 ? size : 16;
+    if (size <= 0) size = 16;
+    // Slightly enlarge the tray artwork to better match neighboring notification icons.
+    return (size * 3 + 1) / 2;
 }
 static bool refreshTrayIcons(bool force = false) {
     const UINT dpi = trayDpi();
