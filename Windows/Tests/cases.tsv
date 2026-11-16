@@ -1,7 +1,9 @@
 # name	start	keys	expected   (keys: \b Backspace, \n Enter, {alt+z} switch hotkey, {caps} Caps Lock)
 telex_basic	vi	tieengs vieetj 	tiếng việt 
 telex_tone_anywhere	vi	truowfng truongwf truwownfg 	trường trường trường 
-hoa_modern	vi	hoaf 	hoà 
+hoa_modern	vi	hoaf 	hòa 
+thuy_modern	vi	thuys 	thúy 
+khoe_modern	vi	khoer 	khỏe 
 restore_invalid	vi	TestFlight 	TestFlight 
 auto_vi_to_en_more	vi	more 	more 
 auto_en_word_mid_sentence	vi	this makes sense 	this makes sense 

@@ -791,6 +791,15 @@ void handleModernMark() {
             hBPC = _index - VWSM;
         }
     }
+    
+    // Modern orthography places the tone on the first vowel in these open
+    // two-vowel combinations (hòa, khỏe, thúy), unlike the legacy spelling.
+    if (vowelCount == 2 &&
+        ((CHR(VSI) == KEY_O && (CHR(VSI+1) == KEY_A || CHR(VSI+1) == KEY_E)) ||
+         (CHR(VSI) == KEY_U && CHR(VSI+1) == KEY_Y))) {
+        VWSM = VSI;
+        hBPC = _index - VWSM;
+    }
 }
 
 void handleOldMark() {
