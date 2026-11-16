@@ -43,6 +43,7 @@ void VikeyDriver::rememberFix(int corrected, Uint16 key, bool shift) {
     }
     undoRemove = corrected + 1;
     undoLanguage = vLanguage;
+    undoBreakGone = false;
     undoActive = true;
 }
 
@@ -81,10 +82,13 @@ void VikeyDriver::resetContext() {
 VKEdit VikeyDriver::press(Uint16 key, bool shift, double now) {
     VKEdit e;
     updatePause(now);
-    //Backspace right after an auto-fix puts the typed keys and the language back
-    if (key == KEY_DELETE && undoActive) {
+    //Backspace right after an auto-fix: the first one takes only the break key, the fixed word stays
+    //("được " ⌫ "," -> "được,"); a second one right after puts the typed keys and the language back
+    bool keepUndo = false;
+    if (key == KEY_DELETE && undoActive && !undoBreakGone) { undoBreakGone = true; keepUndo = true; }
+    else if (key == KEY_DELETE && undoActive) {
         undoActive = false;
-        e.deleteCount = undoRemove;
+        e.deleteCount = undoRemove - 1;   // the break key is gone already
         e.text = undoText;
         if (vLanguage != undoLanguage) { vLanguage = undoLanguage; e.languageChanged = true; }
         startNewSession();
@@ -98,7 +102,7 @@ VKEdit VikeyDriver::press(Uint16 key, bool shift, double now) {
         undos++;
         return e;
     }
-    undoActive = false;
+    undoActive = keepUndo;
     if (vLanguage == 1) {
         vAutoSwitchRequest = -1;
         vKeyHandleEvent(vKeyEvent::Keyboard, vKeyEventState::KeyDown, key, shift ? 1 : 0, false);
@@ -146,9 +150,11 @@ VKEdit VikeyDriver::press(Uint16 key, bool shift, double now) {
     }
     bool wordEnd = key == KEY_SPACE || key == KEY_COMMA || key == KEY_DOT || key == KEY_SEMICOLON || key == KEY_RETURN || key == KEY_ENTER ||
                    (shift && (key == KEY_SLASH || key == KEY_1 || key == KEY_QUOTE || key == KEY_0));
+    // Enter sends what's on screen (D62): it ends the word but never fixes it; a word to fix gets a space or . first
+    bool fixAt = wordEnd && key != KEY_RETURN && key != KEY_ENTER;
     int count = enCount; bool valid = enValid;
     bool afterDouble = enAfterDouble; enAfterDouble = false;
-    if (afterDouble && wordEnd && vAutoSwitchFixDoubledKey(enKeys, count)) {
+    if (afterDouble && fixAt && vAutoSwitchFixDoubledKey(enKeys, count)) {
         enCount = 0; enValid = isWhitespace(key); prevN = 0;
         int corrected = H->newCharCount;
         engineOutput(e, key, shift);
@@ -160,7 +166,7 @@ VKEdit VikeyDriver::press(Uint16 key, bool shift, double now) {
     vAutoSwitchPrevRestored = prevRestored && prevN >= 1;
     bool same = undoneCount > 0 && count == undoneCount && !memcmp(enKeys, undoneKeys, count * sizeof(Uint32));
     if (wordEnd) undoneCount = 0;
-    bool converted = wordEnd && valid && count >= 2 && !same && vAutoSwitchCheckEnglishWord(enKeys, count, prev, prevCounts, prevN);
+    bool converted = fixAt && valid && count >= 2 && !same && vAutoSwitchCheckEnglishWord(enKeys, count, prev, prevCounts, prevN);
     if (!converted && key == KEY_SPACE && valid && count >= 1) {
         prevRestored = false;
         memcpy(prevKeys[1], prevKeys[0], sizeof(prevKeys[0])); prevCounts[1] = prevCounts[0];

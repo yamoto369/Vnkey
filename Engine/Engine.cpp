@@ -1919,10 +1919,11 @@ static void asRestoreToEnglish(const int& handleCode, bool literalOnly) {
     vAutoSwitchRequest = 0;
 }
 
-/** Break keys that end a word for auto switch (not arrows, tab, esc, mouse or shortcuts). */
+/** Break keys that end a word for auto switch (not arrows, tab, esc, mouse or shortcuts).
+    Not Enter either: Enter sends what's on screen (D62). */
 static bool asIsSwitchBreak(const vKeyEvent& event, const Uint16& data, const Uint8& capsStatus, const bool& otherControlKey) {
     if (event != vKeyEvent::Keyboard || otherControlKey) return false;
-    return data == KEY_COMMA || data == KEY_DOT || data == KEY_SEMICOLON || data == KEY_ENTER || data == KEY_RETURN ||
+    return data == KEY_COMMA || data == KEY_DOT || data == KEY_SEMICOLON ||
            data == KEY_QUOTE ||                                 //closing quote, or an apostrophe: doesn't, we're
            (data == KEY_SLASH && capsStatus == 1) || (data == KEY_1 && capsStatus == 1) || (data == KEY_0 && capsStatus == 1) ||
            (data == KEY_9 && capsStatus == 1) ||                //"(" right after a word: web(làm (D27)
@@ -2191,7 +2192,7 @@ void vKeyHandleEvent(const vKeyEvent& event,
         _asApostrophe = false;
         if (asSwitch) {
             asRestoreToEnglish(vRestoreAndStartNewSession, literalOnly); //auto switch: an English word typed in Vietnamese mode
-        } else if (vRestoreIfWrongSpelling && isWordBreak(event, state, data)) { //restore key if wrong spelling with break-key
+        } else if (vRestoreIfWrongSpelling && isWordBreak(event, state, data) && data != KEY_ENTER && data != KEY_RETURN) { //restore key if wrong spelling with break-key; not at Enter (D62)
             if (!tempDisableKey && vCheckSpelling) {
                 checkSpelling(true); //force check spelling
             }

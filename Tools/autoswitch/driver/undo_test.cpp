@@ -1,13 +1,13 @@
 // Backspace-undo then typing on (D32): the word put back is the current word again.
 // Also: a switch or a click starts fresh, Backspace doesn't reopen a word typed before it.
-// usage: undo_test   (exit 1 on a failure)   keys: '<' Backspace, '|' VI/EN switch, '!' click (Mac, Windows, Linux)
+// usage: undo_test   (exit 1 on a failure)   keys: '<' Backspace, '|' VI/EN switch, '!' click (Mac, Windows, Linux), '\n' Enter
 #include "Driver.h"
 #include <cstdio>
 #include <string>
 int vLanguage = 1, vSwitchKeyStatus = 0, vCheckSpelling = 1, vUseModernOrthography = 1, vRestoreIfWrongSpelling = 1,
-    vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1, vAutoSwitchByTyping = 1, vAutoSwitchPreferCurrentMode = 0;
+    vFixRecommendBrowser = 1, vUseSmartSwitchKey = 1, vOtherLanguage = 1, vAutoSwitchByTyping = 1;
 static Uint16 K(char c) { static const Uint16 L[26] = {KEY_A,KEY_B,KEY_C,KEY_D,KEY_E,KEY_F,KEY_G,KEY_H,KEY_I,KEY_J,KEY_K,KEY_L,KEY_M,KEY_N,KEY_O,KEY_P,KEY_Q,KEY_R,KEY_S,KEY_T,KEY_U,KEY_V,KEY_W,KEY_X,KEY_Y,KEY_Z};
-    return c == ' ' ? KEY_SPACE : c == '<' ? KEY_DELETE : L[c - 'a']; }
+    return c == ' ' ? KEY_SPACE : c == '\n' ? KEY_RETURN : c == '<' ? KEY_DELETE : c == ',' ? KEY_COMMA : c == '.' ? KEY_DOT : L[c - 'a']; }
 static std::string type(const char* keys) {
     VikeyDriver d; vLanguage = 1; d.resetContext(); std::u16string t;
     for (const char* p = keys; *p; p++) {
@@ -22,17 +22,33 @@ static std::string type(const char* keys) {
 int main() {
     struct { const char* keys; const char* want; const char* why; } cases[] = {
         {"currentState ", "currentState ", "restore the full identifier at the boundary"},
-        {"currentState <", "curentState", "Undo restores the pre-boundary spelling"},
+        {"currentState <", "currentState", "first Backspace: only the space goes, the fix stays"},
+        {"currentState <<", "curentState", "second Backspace: Undo restores the pre-boundary spelling"},
+        {"currentState <.", "currentState.", "Backspace to add punctuation keeps the fix"},
         {"dessert ", "dessert ", "keep the typed word even when desert is also English"},
-        {"dessert <", "desert", "Undo the doubled-key repair"},
+        {"dessert <<", "desert", "Undo the doubled-key repair"},
+        {"merge <,", "merge,", "Vietnamese mode, English word: Backspace to add a comma keeps the English (Tony 2026-11-12)"},
+        {"merge <<", "mẻge", "second Backspace puts the Vietnamese back"},
+        {"push\n", "púh\n", "Enter sends what's on screen: no fix at Enter (D62, Tony 2026-11-15)"},
+        {"push \n", "push \n", "a space before Enter still fixes"},
+        {"booj source vaay\n", "bộ source vaay\n", "English mode: no fix at Enter either"},
+        {"booj source vaay \n", "bộ source vây \n", "space first, then Enter"},
+        {"booj source vaay.\n", "bộ source vây.\n", "or a dot"},
         {"Sapa ", "Sapa ", "restore an unlisted multi-syllable literal"},
-        {"Sapa <", "Sâp", "Undo the unknown-word repair"},
+        {"Sapa <", "Sapa", "first Backspace: only the space goes"},
+        {"Sapa <,", "Sapa,", "Backspace to add a comma keeps the English word"},
+        {"Sapa <<", "Sâp", "Undo the unknown-word repair"},
         {"been Momo ", "bên Momo ", "unknown name does not rewrite previous Vietnamese"},
-        {"been Momo <", "bên Môm", "Undo changes only the unknown name"},
+        {"been Momo <<", "bên Môm", "Undo changes only the unknown name"},
         {"booj source vaay ", "bộ source vây ", "English word that is Vietnamese: fixed"},
-        {"booj source vaay <", "bộ source vaay", "Backspace puts the keys back, without the space"},
-        {"booj source vaay <j ", "bộ source vậy ", "typing on: the whole word is checked again (Tony 2026-10-29)"},
-        {"booj source vaay < ", "bộ source vaay ", "the same word again stays as typed"},
+        {"booj source vaay <", "bộ source vây", "first Backspace: only the space goes, the word stays Vietnamese"},
+        {"booj source vaay <,", "bộ source vây,", "Backspace to add a comma keeps the Vietnamese word (Tony 2026-11-10)"},
+        {"booj source vaay <j ", "bộ source vậy ", "typing on after the space went: the Vietnamese word takes the tone"},
+        {"booj source vaay <<", "bộ source vaay", "second Backspace puts the keys back"},
+        {"booj source vaay <<j ", "bộ source vậy ", "typing on: the whole word is checked again (Tony 2026-10-29)"},
+        {"booj source vaay << ", "bộ source vaay ", "the same word again stays as typed"},
+        {"booj source vaay <<<", "bộ source vaa", "third Backspace deletes a letter of the typed keys"},
+        {"booj source vaay < ", "bộ source vây ", "space again: the fix stays"},
         {"xin |hello|<s", "xin hells", "after a switch Backspace doesn't reopen xin (was xin heín)"},
         {"heelo!vieejt", "hêloviệt", "a click on a word put back to its keys: the next word gets Telex (was vieejt)"},
     };

@@ -42,7 +42,7 @@ private:
     Uint32 enKeys[MAX_BUFF]; int enCount = 0; bool enValid = true; bool enAfterDouble = false;
     Uint32 prevKeys[2][MAX_BUFF]; int prevCounts[2] = {0, 0}; int prevN = 0;
     bool prevRestored = false;   // prevKeys[0] was put back to English by auto switch (D35)
-    bool undoActive = false; int undoRemove = 0; int undoLanguage = 1; std::u16string undoText;
+    bool undoActive = false, undoBreakGone = false; int undoRemove = 0; int undoLanguage = 1; std::u16string undoText;
     Uint32 undoKeys[MAX_BUFF]; int undoKeyCount = 0;   // keys of the original word (English can go on typing it)
     Uint32 undoneKeys[MAX_BUFF]; int undoneCount = 0;  // the word Backspace put back: finished unchanged, it stays
     double pauseUntil = 0; bool paused = false;

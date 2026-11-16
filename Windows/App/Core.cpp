@@ -77,7 +77,7 @@ static int _enPrevN = 0;
 static bool _enPrevRestored = false;   // _enPrevKeys[0] was put back to English by auto switch (D35)
 
 struct AutoFixUndo {
-    bool active; int removeCount; wchar_t text[MAX_BUFF + 1]; int textCount; int language;
+    bool active; bool breakGone; int removeCount; wchar_t text[MAX_BUFF + 1]; int textCount; int language;   // breakGone: the first Backspace took the break key (D61)
     Uint32 keys[MAX_BUFF]; int keyCount;   // the keys of the original word (English mode can go on typing it after an undo, D32)
 };
 static AutoFixUndo _autoFixUndo = {};
@@ -420,7 +420,7 @@ static void RememberAutoFix(int correctedCount) {
         if (vAutoSwitchUndoData[x] & CHAR_CODE_MASK) { _autoFixUndo.keyCount = 0; break; }   // shown text, not keys
         _autoFixUndo.keys[_autoFixUndo.keyCount++] = vAutoSwitchUndoData[x];
     }
-    _autoFixUndo.removeCount = correctedCount + 1; _autoFixUndo.language = vLanguage; _autoFixUndo.active = true;
+    _autoFixUndo.removeCount = correctedCount + 1; _autoFixUndo.language = vLanguage; _autoFixUndo.breakGone = false; _autoFixUndo.active = true;
 }
 static bool UndoAutoFixWithBackspace() {
     if (!_autoFixUndo.active) return false;
@@ -509,12 +509,14 @@ static bool HandleEnglishKeyForAutoSwitch() {
     bool wordEnd = _keycode == KEY_SPACE || _keycode == KEY_COMMA || _keycode == KEY_DOT || _keycode == KEY_SEMICOLON || _keycode == KEY_RETURN || _keycode == KEY_ENTER ||
                    (shift && (_keycode == KEY_SLASH || _keycode == KEY_1 || _keycode == KEY_QUOTE || _keycode == KEY_0));
     int count = _enCount; bool valid = _enValid; bool afterDouble = _enAfterDouble; _enAfterDouble = false;
-    if (afterDouble && wordEnd && vAutoSwitchFixDoubledKey(_enKeys, count)) {
+    if (afterDouble && fixAt && vAutoSwitchFixDoubledKey(_enKeys, count)) {
         StartEnglishWord(IsWordStartKey(_keycode, shift)); _enPrevN = 0;
         int correctedCount = pData->newCharCount; SendEngineOutput(); RememberAutoFix(correctedCount); return true;
     }
     StartEnglishWord(IsWordStartKey(_keycode, shift));
-    bool checked = wordEnd && valid && count >= 2 && !(vOtherLanguage && _otherInputLanguage);
+    // Enter sends what's on screen (D62): it ends the word but never fixes it; a word to fix gets a space or . first
+    bool fixAt = wordEnd && _keycode != KEY_RETURN && _keycode != KEY_ENTER;
+    bool checked = fixAt && valid && count >= 2 && !(vOtherLanguage && _otherInputLanguage);
     if (_undoneCount > 0) {   // the word just put back by Backspace, finished unchanged: keep it as typed (D32)
         if (count == _undoneCount && !memcmp(_enKeys, _undoneKeys, count * sizeof(Uint32))) checked = false;
         if (wordEnd) _undoneCount = 0;
@@ -593,9 +595,14 @@ static LRESULT CALLBACK keyboardHook(int nCode, WPARAM wParam, LPARAM lParam) {
     }
     _hasJustUsedHotKey = _lastFlag != 0;
 
-    // Backspace right after an automatic correction undoes it
-    if (_keycode == KEY_DELETE && _autoFixUndo.active && !(OTHER_CONTROL_KEY)) { if (UndoAutoFixWithBackspace()) return 1; }
-    _autoFixUndo.active = false;
+    // Backspace right after an automatic correction (D61): the first takes only the break key and keeps the
+    // correction ("được " ⌫ "," -> "được,"); a second one right after undoes it. Any other key ends that chance
+    bool keepUndo = false;
+    if (_keycode == KEY_DELETE && _autoFixUndo.active && !(OTHER_CONTROL_KEY)) {
+        if (!_autoFixUndo.breakGone) { _autoFixUndo.breakGone = true; _autoFixUndo.removeCount--; keepUndo = true; }
+        else if (UndoAutoFixWithBackspace()) return 1;
+    }
+    _autoFixUndo.active = keepUndo;
     TLNoteKey(_keycode, _flag);
 
     updateOtherInputLanguage();   // every key: Win+Space can switch to a Japanese/Chinese IME in the same window
