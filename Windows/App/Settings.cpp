@@ -616,7 +616,7 @@ static void buildMain() {
         SetWindowPos(style, nullptr, W - MARGIN - 18 - 210, _y - ROW + 2, 210, 36, SWP_NOZORDER);
         HWND mark = row(L"Đặt dấu", nullptr, L"VikeyCombo", C_MARK, 180, 36, WS_TABSTOP);
         SendMessageW(mark, CB_ADDSTRING, 0, (LPARAM)L"hòa, thúy"); SendMessageW(mark, CB_ADDSTRING, 0, (LPARAM)L"hoà, thuý");
-        SendMessageW(mark, CB_SETCURSEL, prefs::getInt(L"ModernOrthography", 1) ? 0 : 1, 0);
+        SendMessageW(mark, CB_SETCURSEL, prefs::getInt(L"ModernOrthography", 1) ? 1 : 0, 0);
         SetWindowPos(mark, nullptr, W - MARGIN - 18 - 180, _y - ROW + 2, 180, 36, SWP_NOZORDER);
         endGroup();
         beginGroup(settingsGroup(0, 2).title);
@@ -683,7 +683,7 @@ static LRESULT CALLBACK mainProc(HWND h, UINT msg, WPARAM wp, LPARAM lp) {
         case C_SMART: flag(L"UseSmartSwitchKey"); break;
         case C_SITE: flag(L"SmartSwitchPerSite"); break;
         case C_STYLE: if (HIWORD(wp) == CBN_SELCHANGE) { prefs::setInt(L"TelexStyle", (int)SendMessageW(c, CB_GETCURSEL, 0, 0)); core::reloadSettings(); } break;
-        case C_MARK: if (HIWORD(wp) == CBN_SELCHANGE) { prefs::setInt(L"ModernOrthography", SendMessageW(c, CB_GETCURSEL, 0, 0) == 0 ? 1 : 0); core::reloadSettings(); } break;
+        case C_MARK: if (HIWORD(wp) == CBN_SELCHANGE) { prefs::setInt(L"ModernOrthography", SendMessageW(c, CB_GETCURSEL, 0, 0) == 1 ? 1 : 0); core::reloadSettings(); } break;
         case C_SPELL: flag(L"Spelling"); break;
         case C_RESTORE: flag(L"RestoreIfInvalidWord"); break;
         case C_LOGIN: prefs::setLaunchAtLogin(toggleOn(c)); setToggle(c, prefs::launchAtLogin()); break;
