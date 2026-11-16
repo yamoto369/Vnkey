@@ -65,7 +65,7 @@ $simOutput = Join-Path $env:TMPDIR 'vikey_simulator.txt'
 $env:DRV_OUT = $driverOutput
 & $driver $chatUnits --start vi
 if ($LASTEXITCODE -ne 0) { throw 'Driver simulation failed' }
-& $sim $chatUnits --start vi --lazy --dump $simOutput
+& $sim $chatUnits --start vi --lazy --as-typed --dump $simOutput
 if ($LASTEXITCODE -ne 0) { throw 'Engine simulator failed' }
 $env:VIKEY_DRIVER_OUTPUT = $driverOutput
 $env:VIKEY_SIM_OUTPUT = $simOutput
