@@ -1,7 +1,7 @@
 // Realistic typing: types each message of a corpus twice into the real engine (through sim.cpp's copy of the Mac
 // app's logic) — once cleanly, once like a person: typos fixed with Backspace, Backspace into the last word, the
 // cursor moved away and back (also mid-word), clicks, an edit somewhere earlier, a ⌥Z round trip with an English
-// word in between. The person looks at the screen after each slip and retypes the word if it isn't what they meant.
+// word in between, a Space typed before a , . ? ! and taken back with Backspace ("được " ⌫ ",", D61). The person looks at the screen after each slip and retypes the word if it isn't what they meant.
 //
 // Checks (each failure prints the message and the actions that led to it):
 //   guard     a key deleted text from before the last cursor move / click / switch (the engine edited text it
@@ -25,8 +25,8 @@ static size_t guardPos = 0;    // P.screen[0..guardPos) was there before the las
 static std::string acts;       // what happened in this message, for the report
 static bool tracing = false;
 
-enum Kind { TYPO, PREVWORD, CURSOR, CLICK, ELSEWHERE, SWITCHTRIP, PUNCT, NKINDS };
-static const char* kindName[NKINDS] = {"typo", "back-into-word", "cursor-trip", "click", "edit-elsewhere", "switch-trip", "stray-punct"};
+enum Kind { TYPO, PREVWORD, CURSOR, CLICK, ELSEWHERE, SWITCHTRIP, PUNCT, LATEPUNCT, NKINDS };
+static const char* kindName[NKINDS] = {"typo", "back-into-word", "cursor-trip", "click", "edit-elsewhere", "switch-trip", "stray-punct", "late-punct"};
 struct Stat { long ops = 0, retyped = 0; };
 static Stat stats[NKINDS];
 static long guardFails = 0, elsewhereFails = 0, stuck = 0, msgNo = 0;
@@ -60,6 +60,7 @@ static void backspace(int n) { for (int i = 0; i < n; i++) { key(KEY_DELETE, fal
 
 /** Mac app on a click: VikeyCore's mouse-down (a new session; English mode forgets its word). */
 static void click() {
+    P.undoActive = false;   // a click ends the chance to undo a fix with Backspace
     if (vLanguage == 1) vKeyHandleEvent(vKeyEvent::Mouse, vKeyEventState::MouseDown, 0);
     else { P.enCount = 0; P.enValid = true; P.prevN = 0; P.enAfterDouble = false; P.navOffset = 0; vAutoSwitchForget(); }
     guardPos = P.screen.size();
@@ -166,7 +167,7 @@ static void checkWord(const Unit& u, const U& base, const U& meant, const std::s
         // auto switch still changes it: Backspace right after the fix puts the word back as typed (D32), then
         // the person types what came after it again
         typeKeys(keys); if (ok()) return;
-        backspace(1); typeKeys(u.seps);
+        backspace(undoOneStep() ? 1 : 2); typeKeys(u.seps);   // D61: the first takes the break key, the second undoes
         if (ok()) return;
     }
     stuck++;
@@ -209,6 +210,7 @@ int main(int argc, char** argv) {
         msgNo++;
         if (msg.empty() || (only >= 0 && msgNo != only)) continue;
         std::mt19937 rng(seed * 7919u + (unsigned)msgNo);
+        std::mt19937 lateRng(seed * 104729u + (unsigned)msgNo);   // its own dice: the other slips stay where they were
         resetAll(); std::vector<U> meant; for (const Unit& u : msg) meant.push_back(golden(u));   // what each word should read
         resetAll(); acts.clear();
         for (size_t ui = 0; ui < msg.size(); ui++) {
@@ -278,6 +280,11 @@ int main(int argc, char** argv) {
                     note("{click}"); click(); slip = CLICK; stats[CLICK].ops++;
                 }
                 key(kk, sh); acts += c;
+            }
+            // late punctuation: the word ends with , . ? ! ; : but the person typed Space first, then Backspace over it
+            if (slip < 0 && u.word && !u.seps.empty() && strchr(",.?!;:", u.seps[0]) && lateRng() % 1000 < 300) {
+                key(KEY_SPACE, false); note("{late:␣"); backspace(1); note("}");
+                slip = LATEPUNCT; stats[LATEPUNCT].ops++;
             }
             typeKeys(u.seps); for (char c : u.seps) acts += c == '\n' ? '|' : c;
             if (u.word) words++;

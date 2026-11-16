@@ -2,7 +2,7 @@
 # cmp.sh units [en]: driver lazy output vs sim --lazy dump, line by line
 u=$1; st=${2:-vi}
 DRV_OUT=${TMPDIR:-/tmp}/drv.txt ./drvlazy $u --start $st >/dev/null
-../sim/sim $u --start $st --lazy --dump ${TMPDIR:-/tmp}/simdump.txt >/dev/null
+../sim/sim $u --start $st --lazy --as-typed --dump ${TMPDIR:-/tmp}/simdump.txt >/dev/null
 python3 - <<'PY'
 import os
 d=open(os.environ.get('TMPDIR','/tmp').rstrip('/')+'/drv.txt',encoding='utf-8').read().split('\n')

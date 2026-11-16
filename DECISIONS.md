@@ -5,6 +5,46 @@ Each entry records what was asked, what was decided, and its status. Newest firs
 
 Status values: **Shipped** (in a build Tony has), **Agreed** (decided, not built yet), **Rejected**.
 
+## 62. Enter sends what's on screen
+
+**Status:** Shipped in 1.0.34 (Mac), 2026-11-15 (Tony's report). Windows, Linux and the phones not released yet.
+
+**Problem.** In English mode in Chrome's address bar, Tony typed "ver" and pressed Enter. Chrome was showing "vercel.com" with "cel.com" highlighted. Enter is a word end, so auto switch checked "ver", found no English word before it, and made it "vẻ". Fixing the word removed the highlighted completion, so Chrome searched Google for "vẻ" instead of opening vercel.com. "ver" is also a common word in programming (version).
+
+**Decision.** Enter never changes the word before it. What you see is what Enter sends. To get a word fixed, type a space or a dot first, then Enter. This covers every platform and both directions:
+- English mode: "data team lamf" + Enter sends "lamf". "lamf" + space gives "làm".
+- Vietnamese mode: "push" + Enter sends "púh". "push" + space gives "push".
+- The restore-if-wrong-spelling step doesn't run at Enter either.
+- Enter still ends the word, so the next word starts fresh.
+
+Options Tony didn't pick:
+- Skip the fix only when the field shows a highlighted completion (read through Accessibility). Not needed: with no fix at Enter, the completion is never touched.
+- Keep a lone "ver" English. Not needed for Enter. After a space, the fix shows on screen and ⌫⌫ undoes it (D61).
+
+**Simulator.** The corpus messages end with Enter. People who see a wrong last word type a space before Enter, so `sim.cpp` does too: when the last word isn't right, it tries a space before the Enter and counts that, not a manual switch. `--as-typed` turns this off (`driver/cmp.sh` uses it to compare the driver key for key).
+
+**Result.** Without the space model, the chat corpus would need 125 more manual switches (57 → 182). With it: manual switches 57 → 57 (chat), 70 → 70 (chat_typos), 110 → 109 (synthetic); lazy wrong words 36 → 36, 46 → 46, 63 → 62. A space before Enter is needed in 125 of 1,869 chat messages and 85 of 5,635 synthetic ones. Before, Enter fixed 127 chat messages: 70 English → Vietnamese ("lamf" → "làm"), 51 Vietnamese → English ("gôd" → "good"), 6 English spelling. Rules D62 (10 cases), `driver/undo_test` (5 cases).
+
+Live test on the Mac app: 34/34, 8 of them new Enter cases. In Chrome's address bar, "ver" with "cel.com" highlighted, then Enter: 1.0.33 searched Google for "vẻ", this build opened vercel.com. Windows, Linux and the phones run the same change; their live cases aren't updated yet.
+
+## 61. Backspace after a fixed word: the first takes the space, the second undoes
+
+**Status:** Shipped in 1.0.33 (Mac), 2026-11-12. Tony approved it (a user's report, via Tony). Live test on the Mac app: 26/26.
+
+**Problem.** A user typed a Vietnamese word in English mode ("dduowcj"), pressed Space, and auto switch made it "được". He then saw it needed a comma and pressed Backspace to take the space back. Backspace right after a fix is the undo (D32), so the word went back to "dduowcj". The same happens the other way: "Sapa " ⌫ gave "Sâp". The realistic typing simulator never saw this, because it never modelled the Backspace undo.
+
+**Fix.** Two steps, on Mac, Windows, Linux, iPhone and Android:
+- The first Backspace right after a fix takes only the break key (the space, or the , . that ended the word). The fixed word stays. "được " ⌫ "," gives "được,".
+- A second Backspace right after it undoes the fix, as one Backspace did before: the typed keys and the language come back, and typing on works as in D32.
+- Any other key, a click or a switch in between ends the chance to undo.
+- Cost: undoing a wrong fix takes ⌫⌫ instead of ⌫.
+
+**Simulator.** `sim.cpp` now models the Backspace undo like `VikeyCore.mm` (the undo, the word kept as typed after it, a click ending it). `SIM_UNDO_ONE_STEP=1` gives the old one-step undo. `rtsim.cpp` has a new slip, late-punct: for 30% of the words that end with , . ? ! ; : the person types Space first, then Backspace, then the mark.
+
+**Result.** Late-punct slips that needed fixing by hand (chat x3 seeds + synthetic): 269/3502 with the one-step undo, 12/3502 with the two-step undo. The same words with the mark typed straight away: 12/3502, so the Backspace costs nothing now. Every other slip kind, the lazy-typer metrics and the goldens are unchanged. `driver/undo_test` has the new cases; Windows/Android and Linux live cases updated.
+
+**Still open.** Backspace into a fixed word to edit its last letter ("được " ⌫⌫ to change "ợ") reaches the undo on the second Backspace and puts the typed keys back. The simulator counts this: back-into-word 422/6606 with the one-step undo (on the first Backspace), 425/6606 with the two-step undo (on the second). Before the undo was modelled the simulator showed 1/6606. Fixing it needs a different undo gesture; Tony's call.
+
 ## 60. English word forms the list is missing: "resets" stays "resets"
 
 **Status:** Built 2026-11-08, not in a release yet (Tony's report).

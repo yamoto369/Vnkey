@@ -96,15 +96,16 @@ static void press(char c) {
     if (lc >= '0' && lc <= '9') { enValid = false; enAfterDouble = false; screen.push_back(c); return; }
     bool wordEnd = key == KEY_SPACE || key == KEY_COMMA || key == KEY_DOT || key == KEY_RETURN || key == KEY_SEMICOLON ||
                    (caps && (key == KEY_SLASH || key == KEY_1 || key == KEY_QUOTE || key == KEY_0));
+    bool fixAt = wordEnd && key != KEY_RETURN;   // Enter sends what's on screen (D62)
     int count = enCount; bool valid = enValid; enCount = 0;
     enValid = key == KEY_SPACE || key == KEY_RETURN || (key == KEY_9 && caps) || key == KEY_LEFT_BRACKET || key == KEY_QUOTE;
     bool afterDouble = enAfterDouble; enAfterDouble = false;
-    if (afterDouble && wordEnd && vAutoSwitchFixDoubledKey(enKeys, count)) {
+    if (afterDouble && fixAt && vAutoSwitchFixDoubledKey(enKeys, count)) {
         prevN = 0; applyOutput(key, caps); return;
     }
     const Uint32* prev[2] = {prevKeys[0], prevKeys[1]};
     vAutoSwitchPrevRestored = prevRestored && prevN >= 1;
-    bool converted = wordEnd && valid && count >= 2 && vAutoSwitchCheckEnglishWord(enKeys, count, prev, prevCounts, prevN);
+    bool converted = fixAt && valid && count >= 2 && vAutoSwitchCheckEnglishWord(enKeys, count, prev, prevCounts, prevN);
     if (!converted && key == KEY_SPACE && valid && count >= 1) {
         prevRestored = false;
         memcpy(prevKeys[1], prevKeys[0], sizeof(prevKeys[0])); prevCounts[1] = prevCounts[0];

@@ -30,3 +30,4 @@ D46	none	decided not to build
 D54	open	Linux pre-edit in apps that never report the surrounding text: needs a live Linux test
 D55	none	packaging (Arch Linux)
 D59	test	iOS/Tests/KeyboardSystemParityTests.swift::testColonAndSemicolonStay
+D61	test	Tools/autoswitch/driver/undo_test.cpp::booj source vaay <, ; Windows/Tests/cases.tsv::late_comma_keeps_fix_D61 ; Linux/Tests/cases-linux.tsv::late_comma_keeps_fix_D61 ; Tools/autoswitch/sim/rtsim.cpp::late-punct

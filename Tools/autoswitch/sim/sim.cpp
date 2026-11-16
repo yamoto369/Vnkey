@@ -1,6 +1,6 @@
 // Types a mixed Vietnamese/English corpus into the real Vikey engine, key by key, with an
 // "ideal user" who presses the switch hotkey only when the next word would come out wrong.
-// Mirrors App/Core/VikeyCore.mm (English-mode word buffer, auto switch, hotkey undo).
+// Mirrors App/Core/VikeyCore.mm (English-mode word buffer, auto switch, Backspace undo).
 // Build: see README.md.   Run: sim units.txt [--off] [--start en|vi] [--show N]
 #include "Engine.h"
 #include <cstdio>
@@ -23,7 +23,9 @@ struct Platform {                    // everything VikeyCore.mm keeps outside th
     U screen;
     Uint32 enKeys[MAX_BUFF]; int enCount = 0; bool enValid = true; bool enAfterDouble = false;
     Uint32 prevKeys[2][MAX_BUFF]; int prevCounts[2] = {0, 0}; int prevN = 0;
-    bool undoActive = false; int undoRemove = 0; U undoText;
+    bool undoActive = false, undoBreakGone = false; int undoRemove = 0, undoLanguage = 1; U undoText;   // Backspace undo (D32, D61)
+    Uint32 undoKeys[MAX_BUFF]; int undoKeyCount = 0;     // keys of the original word (English can go on typing it)
+    Uint32 undoneKeys[MAX_BUFF]; int undoneCount = 0;    // the word Backspace put back: finished unchanged, it stays
     int autoSwitches = 0, undos = 0;
     int runSide = -1, runCount = 0, earlySwitches = 0;   // Early Switch (D28)
     bool prevRestored = false;                           // prevKeys[0] was put back to English by auto switch (D35)
@@ -74,10 +76,18 @@ static void rememberFix(int corrected, Uint16 key, bool shift) {
     for (int x = 0; x < vAutoSwitchUndoCount; x++) if ((vAutoSwitchUndoData[x] & 0xFFFF) == KEY_SPACE && !(vAutoSwitchUndoData[x] & CHAR_CODE_MASK)) return;   //multi-word fix: no undo
     P.undoText.clear();
     for (int x = 0; x < vAutoSwitchUndoCount; x++) P.undoText.push_back(charOf(vAutoSwitchUndoData[x]));
-    P.undoText.push_back(brk);
-    P.undoRemove = corrected + 1;
+    P.undoKeyCount = 0;
+    for (int x = 0; x < vAutoSwitchUndoCount && x < MAX_BUFF; x++) {
+        if (vAutoSwitchUndoData[x] & CHAR_CODE_MASK) { P.undoKeyCount = 0; break; }   // shown text, not keys
+        P.undoKeys[P.undoKeyCount++] = vAutoSwitchUndoData[x];
+    }
+    P.undoRemove = corrected + 1;   // the fixed word and the break key after it
+    P.undoLanguage = vLanguage;
+    P.undoBreakGone = false;
     P.undoActive = true;
 }
+// SIM_UNDO_ONE_STEP=1: Backspace right after a fix undoes it at once (1.0.32 and before), to compare with D61
+static bool undoOneStep() { static int v = getenv("SIM_UNDO_ONE_STEP") ? atoi(getenv("SIM_UNDO_ONE_STEP")) : 0; return v != 0; }
 static void switchTo(int lang) { vLanguage = lang; startNewSession(); vAutoSwitchForget(); P.autoSwitches++; }
 
 static void switchTo(int lang);
@@ -93,7 +103,26 @@ static void earlyWord(int side) {
 }
 
 static void press(Uint16 key, bool shift) {
-    P.undoActive = false;
+    // Backspace right after an auto-fix (D61): the first takes only the break key, the fixed word stays ("được " ⌫ ","
+    // -> "được,"); the next one right after puts the typed keys and the language back (D32)
+    bool keepUndo = false;
+    if (key == KEY_DELETE && P.undoActive && !P.undoBreakGone && !undoOneStep()) { P.undoBreakGone = true; keepUndo = true; }
+    else if (key == KEY_DELETE && P.undoActive) {
+        P.undoActive = false;
+        int remove = P.undoBreakGone ? P.undoRemove - 1 : P.undoRemove;
+        for (int i = 0; i < remove && !P.screen.empty(); i++) P.screen.pop_back();
+        P.screen += P.undoText;
+        vLanguage = P.undoLanguage;
+        startNewSession(); vAutoSwitchForget();
+        P.enCount = 0; P.enValid = false; P.prevN = 0; P.enAfterDouble = false; P.undoneCount = 0; P.navOffset = 0;
+        if (vLanguage == 0 && P.undoKeyCount > 0) {   // the typed keys are the current word again ("vaay" + "j" -> "vậy")
+            memcpy(P.enKeys, P.undoKeys, P.undoKeyCount * sizeof(Uint32)); P.enCount = P.undoKeyCount; P.enValid = true;
+            memcpy(P.undoneKeys, P.undoKeys, P.undoKeyCount * sizeof(Uint32)); P.undoneCount = P.undoKeyCount;
+        }
+        P.undos++;
+        return;
+    }
+    P.undoActive = keepUndo;
     if (vLanguage == 1) {
         vAutoSwitchRequest = -1;
         vAutoSwitchLastSide = -2;
@@ -149,9 +178,10 @@ static void press(Uint16 key, bool shift) {
     if (digit && !shift) { P.enValid = P.enCount == 0 && P.enValid; P.enCount = 0; P.prevN = 0; P.enAfterDouble = false; P.screen.push_back(typedChar(key, shift)); return; }
     bool wordEnd = key == KEY_SPACE || key == KEY_COMMA || key == KEY_DOT || key == KEY_SEMICOLON || key == KEY_RETURN ||
                    (shift && (key == KEY_SLASH || key == KEY_1 || key == KEY_QUOTE || key == KEY_0));
+    bool fixAt = wordEnd && key != KEY_RETURN;   // Enter sends what's on screen (D62)
     int count = P.enCount; bool valid = P.enValid;
     bool afterDouble = P.enAfterDouble; P.enAfterDouble = false;
-    if (afterDouble && wordEnd && vAutoSwitchFixDoubledKey(P.enKeys, count)) {
+    if (afterDouble && fixAt && vAutoSwitchFixDoubledKey(P.enKeys, count)) {
         P.enCount = 0; P.enValid = isWhitespace(key); P.prevN = 0;
         int corrected = H->newCharCount;
         applyOutput(key, shift);
@@ -161,7 +191,9 @@ static void press(Uint16 key, bool shift) {
     P.enCount = 0; P.enValid = isWhitespace(key) || (key == KEY_9 && shift) || key == KEY_LEFT_BRACKET || key == KEY_QUOTE;
     const Uint32* prev[2] = {P.prevKeys[0], P.prevKeys[1]};
     vAutoSwitchPrevRestored = P.prevRestored && P.prevN >= 1;
-    bool converted = wordEnd && valid && count >= 2 &&
+    bool same = P.undoneCount > 0 && count == P.undoneCount && !memcmp(P.enKeys, P.undoneKeys, count * sizeof(Uint32));
+    if (wordEnd) P.undoneCount = 0;   // the word Backspace put back, finished unchanged: it stays as typed (D32)
+    bool converted = fixAt && valid && count >= 2 && !same &&
         (getenv("SIM_NO_LOOKBACK") ? vAutoSwitchCheckEnglishWord(P.enKeys, count) : vAutoSwitchCheckEnglishWord(P.enKeys, count, prev, P.prevCounts, P.prevN));
     if (!converted && wordEnd && valid && count >= 2) earlyWord(vAutoSwitchWordSide(P.enKeys, count));
     if (!converted && key == KEY_SPACE && valid && count >= 1) {
@@ -207,6 +239,12 @@ static U golden(const Unit& u) {
     for (char c : u.seps) g.push_back(c == '\n' ? u'\n' : (char16_t)c);
     return g;
 }
+
+// Enter sends what's on screen (D62), so a message whose last word isn't right yet gets a space before the Enter
+// (or a . — the space is what people reach for): "phải đợi data team lamf" + space, then Enter. The word with that space:
+static bool endsAtEnter(const Unit& u) { return u.word && !u.seps.empty() && u.seps[0] == '\n'; }
+static U withSpace(const Unit& u, U g) { g.insert(g.size() - u.seps.size(), 1, u' '); return g; }
+static std::string withSpaceKeys(const Unit& u) { return " " + u.seps; }
 
 static std::string utf8(const U& s) {
     std::string o;
@@ -260,38 +298,59 @@ int main(int argc, char** argv) {
     fclose(f);
 
     long words = 0, manual = 0, errors = 0, wordsVn = 0, wordsEn = 0;
-    bool lazy = false; int showLazy = 0; FILE* dump = NULL;
+    bool lazy = false, asTyped = false; int showLazy = 0; FILE* dump = NULL;
     for (int i = 2; i < argc; i++) {
         if (!strcmp(argv[i], "--lazy")) lazy = true;
         if (!strcmp(argv[i], "--show-lazy") && i + 1 < argc) showLazy = atoi(argv[++i]);
         if (!strcmp(argv[i], "--dump") && i + 1 < argc) dump = fopen(argv[++i], "w");   // one "got<TAB>want" line per message
+        if (!strcmp(argv[i], "--as-typed")) asTyped = true;   // lazy: the keys exactly as in the units, no space before Enter (driver/cmp.sh)
     }
     if (lazy) {   // never switch by hand: type each message, count wrong words, then fix them by hand
-        U line, want; long wrong = 0, lines = 0, perfect = 0;
+        U line, want; long wrong = 0, lines = 0, perfect = 0, spaced = 0;
         for (const Unit& u : units) {
-            want += golden(u);
+            U g = golden(u);
+            void* st = endsAtEnter(u) && !asTyped ? vTestSaveState() : NULL; Platform saved = P; int lang = vLanguage; bool sp = false;
             typeString(u.keys); typeString(u.seps);
+            if (st) {   // the lazy typer still reads the message before Enter: a space before it when that helps (D62)
+                int w1 = wrongWords(P.screen, want + g);
+                if (w1 > 0) {
+                    void* st1 = vTestSaveState(); Platform first = P; int lang1 = vLanguage;
+                    vTestRestoreState(st); P = saved; vLanguage = lang;
+                    typeString(u.keys); typeString(withSpaceKeys(u));
+                    if (wrongWords(P.screen, want + withSpace(u, g)) < w1) { g = withSpace(u, g); vTestFreeState(st1); spaced++; sp = true; }
+                    else { vTestRestoreState(st1); P = first; vLanguage = lang1; }
+                } else vTestFreeState(st);
+            }
+            want += g;
             if (u.word) { words++; if (u.isvn) wordsVn++; else wordsEn++; }
             if (u.seps.find('\n') != std::string::npos) {
                 int w = wrongWords(P.screen, want); wrong += w; lines++; if (!w) perfect++;
-                if (dump) { U g = P.screen, t = want; if (!g.empty() && g.back() == u'\n') g.pop_back(); if (!t.empty() && t.back() == u'\n') t.pop_back();
+                if (dump) { U g = P.screen, t = want;
+                            if (sp) { g.erase(g.size() - u.seps.size() - 1, 1); t.erase(t.size() - u.seps.size() - 1, 1); }   // the space before Enter
+                            if (!g.empty() && g.back() == u'\n') g.pop_back(); if (!t.empty() && t.back() == u'\n') t.pop_back();
                             fprintf(dump, "%s\t%s\n", utf8(g).c_str(), utf8(t).c_str()); }
                 if (w && showLazy > 0) { showLazy--; fprintf(stderr, "GOT  %s\nWANT %s\n", utf8(P.screen).c_str(), utf8(want).c_str()); }
                 P.screen.clear(); want.clear();
             }
         }
         if (dump) fclose(dump);
-        printf("%s lazy  words %ld  wrong words %ld (%.2f%%)  messages %ld, perfect %ld (%.1f%%)\n", vAutoSwitchByTyping ? "auto ON " : "auto OFF",
-               words, wrong, 100.0 * wrong / words, lines, perfect, 100.0 * perfect / lines);
+        printf("%s lazy  words %ld  wrong words %ld (%.2f%%)  messages %ld, perfect %ld (%.1f%%)  space before Enter %ld\n", vAutoSwitchByTyping ? "auto ON " : "auto OFF",
+               words, wrong, 100.0 * wrong / words, lines, perfect, 100.0 * perfect / lines, spaced);
         return 0;
     }
-    U expected;
+    U expected; long spacedEnter = 0;
     for (size_t i = 0; i < units.size(); i++) {
         const Unit& u = units[i];
         U want = expected + golden(u);
         void* st = vTestSaveState(); Platform saved = P; int lang = vLanguage;
         typeString(u.keys); typeString(u.seps);
         bool ok = P.screen == want;
+        if (!ok && endsAtEnter(u)) {            // the last word isn't right yet: a space before Enter, not a switch (D62)
+            vTestRestoreState(st); P = saved; vLanguage = lang; st = vTestSaveState();
+            U want2 = expected + withSpace(u, golden(u));
+            typeString(u.keys); typeString(withSpaceKeys(u));
+            if (P.screen == want2) { ok = true; want = want2; spacedEnter++; }
+        }
         if (!ok && getenv("LOOKBACK_DEBUG")) {
             size_t a = want.size() > 60 ? want.size() - 60 : 0, b = P.screen.size() > 60 ? P.screen.size() - 60 : 0;
             fprintf(stderr, "FIRST-TRY-WRONG '%s'\n   got  %s\n   want %s\n", u.keys.c_str(), utf8(P.screen.substr(b)).c_str(), utf8(want.substr(a)).c_str());
@@ -319,7 +378,7 @@ int main(int argc, char** argv) {
             }
         }
     }
-    printf("%s  words %ld (vi %ld, en %ld)  manual switches %ld (%.2f per 100 words)  wrong words %ld (%.2f%%)  auto %d  undo-by-hotkey %d\n",
+    printf("%s  words %ld (vi %ld, en %ld)  manual switches %ld (%.2f per 100 words)  wrong words %ld (%.2f%%)  auto %d  undo-by-hotkey %d  space before Enter %ld\n",
            vAutoSwitchByTyping ? "auto ON " : "auto OFF", words, wordsVn, wordsEn, manual, 100.0 * manual / words, errors, 100.0 * errors / words,
-           P.autoSwitches, P.undos);
+           P.autoSwitches, P.undos, spacedEnter);
 }
